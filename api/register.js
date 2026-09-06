@@ -1,8 +1,8 @@
 import crypto from 'node:crypto';
 
 const PAYMENT_AMOUNT = 28000000;
-const BANK_CODE = 'TCB';
-const BANK_ACCOUNT = '319023913997019';
+const BANK_CODE = 'OCB';
+const BANK_ACCOUNT = '0776134207';
 const ACCOUNT_NAME = 'NGUYEN VU PHU LINH';
 
 export default async function handler(req, res) {
@@ -19,6 +19,6 @@ export default async function handler(req, res) {
     if (!upstream.ok || !result.ok) throw new Error(result.error || 'Could not save registration');
     const qr = new URL('https://vietqr.app/img');
     qr.searchParams.set('acc', BANK_ACCOUNT); qr.searchParams.set('bank', BANK_CODE); qr.searchParams.set('amount', String(PAYMENT_AMOUNT)); qr.searchParams.set('des', orderCode);
-    return res.status(200).json({ ok: true, orderCode, amount: PAYMENT_AMOUNT, bank: 'Techcombank', accountNumber: BANK_ACCOUNT, accountName: ACCOUNT_NAME, qrUrl: qr.toString() });
+    return res.status(200).json({ ok: true, orderCode, amount: PAYMENT_AMOUNT, bank: 'OCB', accountNumber: BANK_ACCOUNT, accountName: ACCOUNT_NAME, qrUrl: qr.toString() });
   } catch (error) { return res.status(502).json({ ok: false, error: 'Could not create payment order' }); }
 }
