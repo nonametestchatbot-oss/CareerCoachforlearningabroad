@@ -48,7 +48,7 @@ export default async function handler(req, res) {
       ok: true,
       orderCode,
       amount: PAYMENT_AMOUNT,
-      bank: 'Techcombank',
+      bank: 'OCB',
       accountNumber: BANK_ACCOUNT,
       accountName: ACCOUNT_NAME,
       qrUrl: qr.toString()
