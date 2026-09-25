@@ -1,8 +1,7 @@
 import crypto from 'node:crypto';
 
-const PAYMENT_AMOUNT = 28000000;
+const PAYMENT_AMOUNT = 1000000;
 const BANK_CODE = 'OCB';
-const BANK_ACCOUNT = '0776134207';
 const ACCOUNT_NAME = 'NGUYEN VU PHU LINH';
 
 export default async function handler(req, res) {
@@ -13,9 +12,12 @@ export default async function handler(req, res) {
   if (required.some(key => !String(body[key] || '').trim())) {
     return res.status(400).json({ ok: false, error: 'Missing required fields' });
   }
-  if (!process.env.APPS_SCRIPT_URL || !process.env.APPS_SCRIPT_SECRET) {
+  if (!process.env.APPS_SCRIPT_URL || !process.env.APPS_SCRIPT_SECRET || !process.env.SEPAY_OCB_VA) {
     return res.status(500).json({ ok: false, error: 'Payment integration is not configured' });
   }
+
+  // OCB webhooks require an official virtual account (VA), not the base account.
+  const paymentAccount = process.env.SEPAY_OCB_VA.trim();
 
   const orderCode = `LC${crypto.randomInt(10000000, 99999999)}`;
   const params = new URLSearchParams({
@@ -39,7 +41,7 @@ export default async function handler(req, res) {
     if (!upstream.ok || !result.ok) throw new Error(result.error || 'Could not save registration');
 
     const qr = new URL('https://vietqr.app/img');
-    qr.searchParams.set('acc', BANK_ACCOUNT);
+    qr.searchParams.set('acc', paymentAccount);
     qr.searchParams.set('bank', BANK_CODE);
     qr.searchParams.set('amount', String(PAYMENT_AMOUNT));
     qr.searchParams.set('des', orderCode);
@@ -49,7 +51,7 @@ export default async function handler(req, res) {
       orderCode,
       amount: PAYMENT_AMOUNT,
       bank: 'OCB',
-      accountNumber: BANK_ACCOUNT,
+      accountNumber: paymentAccount,
       accountName: ACCOUNT_NAME,
       qrUrl: qr.toString()
     });
