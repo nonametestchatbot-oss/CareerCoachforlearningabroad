@@ -1,4 +1,3 @@
-const bookingUrl = 'https://linhcoach.nghetrienkhaiai.com/book/coaching';
 const form = document.getElementById('lead-form');
 const formStatus = document.getElementById('form-status');
 const paymentPanel = document.getElementById('payment-panel');
@@ -19,7 +18,7 @@ function showPayment(order) {
   document.getElementById('payment-code').textContent = order.orderCode;
   paymentStatus.textContent = 'Đang chờ SePay xác nhận thanh toán…';
   bookingButton.hidden = true;
-  bookingButton.href = bookingUrl;
+  bookingButton.href = '#';
   paymentPanel.scrollIntoView({behavior: 'smooth', block: 'center'});
   clearInterval(paymentTimer);
   checkPayment(order.orderCode);
@@ -33,12 +32,12 @@ async function checkPayment(code) {
     if (!response.ok || !result.ok) throw new Error('Status unavailable');
     if (result.status === 'Paid') {
       clearInterval(paymentTimer);
-      paymentStatus.textContent = 'SePay đã xác nhận thanh toán. Đang mở trang chọn lịch…';
+      paymentStatus.textContent = 'Đã xác nhận thanh toán. Ba mẹ có thể gửi đường dẫn bài test này cho con.';
       steps[1].classList.remove('active');
       steps[2].classList.add('active');
       bookingButton.hidden = false;
-      sessionStorage.removeItem('linhCoachConsultationOrder');
-      setTimeout(() => window.location.assign(bookingUrl), 2400);
+      bookingButton.href = '/test?code=' + encodeURIComponent(code);
+      bookingButton.textContent = 'Mở bài test cho con →';
     } else if (result.status === 'Underpaid') {
       paymentStatus.textContent = 'Số tiền nhận được chưa đủ 1.000.000đ. Vui lòng liên hệ Linh để được hỗ trợ trước khi chuyển thêm.';
     } else {

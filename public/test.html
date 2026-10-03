@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="description" content="Bài kiểm chứng hướng đi dành cho học sinh chuẩn bị học tập quốc tế.">
+  <title>Bài kiểm chứng hướng đi | Linh Coach</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assessment.css">
+</head>
+<body class="assessment-shell">
+  <header class="assessment-header">
+    <a class="assessment-brand" href="/"><img src="/assets/logo-full.png" alt=""><span>Linh Coach</span></a>
+    <span class="assessment-header-note">Bài kiểm chứng hướng đi</span>
+  </header>
+  <main class="assessment-main">
+    <section class="assessment-intro" id="intro-view">
+      <p class="assessment-eyebrow">DÀNH CHO CON</p>
+      <h1>Hiểu cách mình học, làm việc và kết nối.</h1>
+      <p class="assessment-lead">Bài kiểm chứng này giúp con nhìn thấy năm xu hướng thường xuất hiện khi học tập, sống và hợp tác trong môi trường mới. Không có kiểu nào đúng hơn kiểu nào.</p>
+      <div class="assessment-notes">
+        <div><strong>40 câu</strong><span>Khoảng 8–10 phút</span></div>
+        <div><strong>5 chiều</strong><span>Nhìn toàn cảnh, không xếp hạng</span></div>
+        <div><strong>30 ngày</strong><span>Đường dẫn kết quả có thời hạn</span></div>
+      </div>
+      <button class="assessment-button" id="start-button" type="button">Bắt đầu bài test <span aria-hidden="true">→</span></button>
+      <p class="assessment-small" id="access-status">Đang kiểm tra quyền truy cập…</p>
+    </section>
+
+    <section class="quiz-view" id="quiz-view" hidden>
+      <div class="quiz-topline"><span id="progress-label">Câu 1 / 40</span><span id="progress-percent">0%</span></div>
+      <div class="progress-track"><span id="progress-bar"></span></div>
+      <div class="quiz-heading">
+        <p class="assessment-eyebrow">CHỌN MỨC ĐỘ PHÙ HỢP NHẤT</p>
+        <h2>Không cần suy nghĩ quá lâu.</h2>
+        <p>Hãy trả lời theo cách con thường hành động, không phải theo cách con nghĩ người khác mong đợi.</p>
+      </div>
+      <form id="quiz-form" novalidate>
+        <div id="question-list"></div>
+        <div class="quiz-actions">
+          <button class="assessment-button" id="next-button" type="submit">Câu tiếp theo <span aria-hidden="true">→</span></button>
+          <p class="assessment-small" id="quiz-status" role="status" aria-live="polite"></p>
+        </div>
+      </form>
+    </section>
+  </main>
+  <script src="/assessment.js" type="module"></script>
+</body>
+</html>
