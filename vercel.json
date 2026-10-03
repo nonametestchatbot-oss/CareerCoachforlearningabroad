@@ -2,6 +2,14 @@
   "cleanUrls": true,
   "headers": [
     {
+      "source": "/(test|result|api)(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "same-origin" }
+      ]
+    },
+    {
       "source": "/assets/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }

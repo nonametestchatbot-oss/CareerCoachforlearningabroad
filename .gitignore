@@ -14,3 +14,6 @@ GBS_AUKLAND DAY2-160.jpg
 514416254_10160930499676428_1592992933821536206_n.jpg
 *.bak
 *.tmp
+.env*
+!.env.example
+public/assets/leadership-event.jpg
