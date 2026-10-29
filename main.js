@@ -6,6 +6,24 @@ const bookingButton = document.getElementById('booking-after-payment');
 const steps = [...document.querySelectorAll('.steps span')];
 let paymentTimer;
 
+// Keep the checkout form compatible with older cached HTML while collecting the
+// email needed to unlock the private assessment after payment.
+if (!document.getElementById('email')) {
+  const emailLabel = document.createElement('label');
+  emailLabel.htmlFor = 'email';
+  emailLabel.textContent = 'Email nhận mã bài test *';
+  const emailInput = document.createElement('input');
+  emailInput.id = 'email';
+  emailInput.name = 'email';
+  emailInput.type = 'email';
+  emailInput.autocomplete = 'email';
+  emailInput.required = true;
+  emailInput.maxLength = 160;
+  emailInput.placeholder = 'Ba mẹ sẽ dùng email này để mở bài test';
+  const studentLabel = document.getElementById('student')?.previousElementSibling;
+  (studentLabel || form.querySelector('button[type="submit"]')).before(emailLabel, emailInput);
+}
+
 function showPayment(order) {
   form.hidden = true;
   paymentPanel.hidden = false;
@@ -59,6 +77,7 @@ form.addEventListener('submit', async event => {
   const params = new URLSearchParams({
     name: String(data.get('name') || ''),
     contact: String(data.get('phone') || ''),
+    email: String(data.get('email') || ''),
     student: String(data.get('student') || ''),
     concern: String(data.get('concern') || '')
   });

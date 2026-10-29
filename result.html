@@ -10,6 +10,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assessment.css">
+  <style>
+    .result-percentile{font:700 21px "Libre Baskerville",Georgia,serif;color:var(--teal-dark);white-space:nowrap}.result-z{margin:0 0 12px;color:var(--muted);font-size:13px}.country-comparison{padding:52px 0 74px;border-top:1px solid var(--line)}.country-comparison h2{font-size:clamp(30px,4vw,48px);margin-bottom:14px}.country-intro{color:var(--muted);max-width:740px}.country-select-label{display:block;margin:24px 0 7px;font-size:13px;font-weight:700}.country-select{width:min(440px,100%);padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit}.country-results{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;margin-top:24px}.country-compare-card{padding:22px;background:var(--card);border:1px solid var(--line);border-radius:16px}.country-compare-card h3{font-size:20px;margin-bottom:8px}.country-compare-card p{color:var(--muted);font-size:14px}.country-table{display:grid;gap:7px;margin-top:18px}.country-row{display:grid;grid-template-columns:1fr 80px 110px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.country-row strong{text-align:right}.country-row-head{font-weight:700;color:var(--muted);border-bottom:2px solid var(--line)}.nearest-list{display:grid;gap:12px;margin:18px 0 0;padding-left:22px}.nearest-list li{display:flex;justify-content:space-between;gap:12px;padding-left:5px}.nearest-list strong{font-size:12px;color:var(--teal)}
+    @media(max-width:700px){.result-percentile{display:block;margin-top:8px}.country-results{grid-template-columns:1fr}.country-row{grid-template-columns:1fr 58px 78px;font-size:12px}}
+  </style>
 </head>
 <body class="assessment-shell result-shell">
   <header class="assessment-header">
@@ -22,14 +26,25 @@
       <h1>Một bản đồ để bắt đầu cuộc trò chuyện tốt hơn.</h1>
       <p>Bản đồ này không nói bạn là người như thế nào trong mọi hoàn cảnh. Nó cho thấy những xu hướng bạn có thể ưu tiên và những cách điều chỉnh đáng thử khi bước vào môi trường học tập mới.</p>
       <div class="result-expiry" id="result-expiry">Đang tải kết quả…</div>
+      <div class="result-actions" style="margin-top:18px"><button class="assessment-button" id="download-result" type="button">Tải kết quả / In PDF</button></div>
     </section>
     <section class="result-chart-section">
       <div class="result-section-heading">
         <p class="assessment-eyebrow">5 CHIỀU</p>
         <h2>Nhìn vị trí của mình giữa hai xu hướng.</h2>
-        <p>Marker chỉ giúp con nhìn tương quan giữa hai phía. Website không hiển thị điểm số.</p>
+        <p>Điểm phần trăm là vị trí tham chiếu theo bảng quy đổi trong workbook; không có mức nào tự động tốt hay xấu.</p>
       </div>
       <div class="result-chart" id="result-chart"></div>
+    </section>
+    <section class="country-comparison" aria-labelledby="country-heading">
+      <p class="assessment-eyebrow">SO SÁNH THAM CHIẾU</p>
+      <h2 id="country-heading">Bạn muốn đối chiếu với nước nào?</h2>
+      <p class="country-intro">Chọn một nước để xem 5 trục đặt cạnh hồ sơ tham chiếu. Kết quả cũng hiển thị ba nước có hồ sơ gần nhất với bạn, kèm cờ và tên Việt–Anh.</p>
+      <label class="country-select-label" for="country-select">Nước tham chiếu</label>
+      <select id="country-select" class="country-select" disabled><option>Đang tải dữ liệu…</option></select>
+      <p class="assessment-small" id="country-status" role="status"></p>
+      <div id="country-results" class="country-results"></div>
+      <section id="previous-result" hidden style="margin-top:28px"><h2>Lần gần nhất để bạn đối chiếu</h2><p class="country-intro">Phần này chỉ xuất hiện khi lượt truy cập mới được cấp quyền xem kết quả trước đó.</p><div id="previous-chart" class="result-chart"></div></section>
     </section>
     <section class="result-next-step">
       <div>

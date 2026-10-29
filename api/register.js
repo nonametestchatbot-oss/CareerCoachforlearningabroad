@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
 
   const body = typeof req.body === 'string' ? Object.fromEntries(new URLSearchParams(req.body)) : (req.body || {});
-  const required = ['name', 'contact', 'student', 'concern'];
+  const required = ['name', 'contact', 'email', 'student', 'concern'];
   if (required.some(key => !String(body[key] || '').trim())) {
     return res.status(400).json({ ok: false, error: 'Missing required fields' });
   }
@@ -27,6 +27,7 @@ export default async function handler(req, res) {
     amount: String(PAYMENT_AMOUNT),
     name: String(body.name).trim(),
     contact: String(body.contact).trim(),
+    email: String(body.email).trim().toLowerCase(),
     student: String(body.student).trim(),
     concern: String(body.concern).trim()
   });
