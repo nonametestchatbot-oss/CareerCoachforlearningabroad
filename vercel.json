@@ -2,6 +2,12 @@
   "cleanUrls": true,
   "headers": [
     {
+      "source": "/",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
       "source": "/(test|result|api)(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "no-store" },
