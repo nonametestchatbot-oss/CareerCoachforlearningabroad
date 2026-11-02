@@ -50,12 +50,12 @@ async function checkPayment(code) {
     if (!response.ok || !result.ok) throw new Error('Status unavailable');
     if (result.status === 'Paid') {
       clearInterval(paymentTimer);
-      paymentStatus.textContent = 'Đã xác nhận thanh toán. Ba mẹ có thể gửi đường dẫn bài test này cho con.';
+      paymentStatus.textContent = 'Đã xác nhận thanh toán. Hãy mở bài kiểm chứng và hoàn thành trước khi chọn lịch tư vấn.';
       steps[1].classList.remove('active');
       steps[2].classList.add('active');
       bookingButton.hidden = false;
       bookingButton.href = '/test?code=' + encodeURIComponent(code);
-      bookingButton.textContent = 'Mở bài test cho con →';
+      bookingButton.textContent = 'Bắt đầu bài kiểm chứng cho con →';
     } else if (result.status === 'Underpaid') {
       paymentStatus.textContent = 'Số tiền nhận được chưa đủ 1.000.000đ. Vui lòng liên hệ Linh để được hỗ trợ trước khi chuyển thêm.';
     } else {
@@ -78,7 +78,7 @@ form.addEventListener('submit', async event => {
     name: String(data.get('name') || ''),
     contact: String(data.get('phone') || ''),
     email: String(data.get('email') || ''),
-    student: String(data.get('student') || ''),
+    student: `${String(data.get('student_name') || '').trim()} — ${String(data.get('student') || '').trim()}`,
     concern: String(data.get('concern') || '')
   });
   try {
