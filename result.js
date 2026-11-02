@@ -39,11 +39,11 @@ function renderCard(result) {
   const position = Math.max(0, Math.min(100, Number(result.position) || 50));
   const markerColor = result.level === 'middle' ? 'var(--teal)' : result.level.includes('left') ? 'var(--orange)' : 'var(--gold)';
   return `<article class="result-card">
-    <div class="result-card-header"><div><h3>${escapeHtml(result.left)} <span aria-hidden="true">—</span> ${escapeHtml(result.right)}</h3><p class="result-theme">${escapeHtml(result.theme)}</p></div><strong class="result-percentile">${result.position}%</strong></div>
+    <div class="result-card-header"><div><h3>${escapeHtml(result.left)} <span aria-hidden="true">—</span> ${escapeHtml(result.right)}</h3><p class="result-theme">${escapeHtml(result.theme)}</p></div><strong class="result-score">${result.position}/100</strong></div>
     <p class="result-phrase">${escapeHtml(result.phrase)}</p>
     <div class="axis-labels"><span>${escapeHtml(result.left)}</span><span>${escapeHtml(result.right)}</span></div>
-    <div class="axis-track" aria-label="Vị trí phần trăm giữa hai xu hướng"><span class="axis-marker" style="left:${position}%;background:${markerColor}"></span></div>
-    <div class="result-z">Tổng z: <strong>${escapeHtml(result.rawZ)}</strong> · vị trí theo bảng quy đổi: <strong>${result.position}%</strong></div>
+    <div class="axis-track" aria-label="Vị trí trên thang xu hướng 0–100"><span class="axis-marker" style="left:${position}%;background:${markerColor}"></span></div>
+    <div class="result-score-note">Điểm xu hướng: <strong>${result.position}/100</strong> · quy đổi từ câu trả lời, không phải percentile hay điểm chuẩn quốc gia.</div>
     <div class="result-detail-grid"><div class="result-detail"><h4>${escapeHtml(result.left)}</h4><p>${escapeHtml(result.leftDetail || '')}</p></div><div class="result-detail"><h4>${escapeHtml(result.right)}</h4><p>${escapeHtml(result.rightDetail || '')}</p></div></div>
     <p class="result-context"><strong>Gợi ý:</strong> ${escapeHtml(result.context)}</p>
   </article>`;
@@ -73,7 +73,7 @@ function renderCountryComparison() {
     return;
   }
   const selectedLabel = countryLabel(selected);
-  const rows = userResults.map(result => `<div class="country-row"><span>${escapeHtml(result.key)} · ${escapeHtml(result.left)} — ${escapeHtml(result.right)}</span><strong>${result.position}%</strong><span>${selected.scores[result.key]}%</span></div>`).join('');
+  const rows = userResults.map(result => `<div class="country-row"><span>${escapeHtml(result.key)} · ${escapeHtml(result.left)} — ${escapeHtml(result.right)}</span><strong>${result.position}/100</strong><span>${selected.scores[result.key]}%</span></div>`).join('');
   const nearest = COUNTRY_PROFILES.filter(profile => profile.id !== selected.id).map(profile => ({profile, distance: distanceToCountry(profile)})).sort((a, b) => a.distance - b.distance).slice(0, 3);
   countryResults.innerHTML = `<div class="country-compare-card"><h3>${escapeHtml(selectedLabel)} và kết quả của bạn</h3><p>So sánh theo khoảng cách Euclid trên 5 trục; khoảng cách nhỏ hơn nghĩa là hồ sơ tham chiếu gần hơn.</p><div class="country-table"><div class="country-row country-row-head"><span>Trục</span><strong>Bạn</strong><strong>${escapeHtml(selectedLabel)}</strong></div>${rows}</div></div><div class="country-compare-card"><h3>3 nước có hồ sơ gần nhất</h3><ol class="nearest-list">${nearest.map(item => `<li><span>${escapeHtml(countryLabel(item.profile))}</span><strong>Khoảng cách ${item.distance.toFixed(1)}</strong></li>`).join('')}</ol></div>`;
 }
