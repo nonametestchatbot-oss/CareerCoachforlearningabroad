@@ -3,7 +3,7 @@
 html{scroll-behavior:smooth;scroll-padding-top:90px}
 body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 "DM Sans",Arial,sans-serif}
 h1,h2,h3,h4,p,figure{margin:0}
-h1,h2,h3{font-family:"Libre Baskerville",Georgia,serif;line-height:1.2;letter-spacing:-.035em}
+h1,h2,h3{font-family:"DM Sans",Arial,sans-serif;line-height:1.2;letter-spacing:-.035em}
 h1{font-size:clamp(42px,4.7vw,70px)}
 h2{font-size:clamp(32px,3.7vw,52px);max-width:790px}
 h3{font-size:23px}
@@ -18,7 +18,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,su
 .button-small{min-height:44px;padding:11px 24px;font-size:14px}
 .site-header{position:sticky;top:0;z-index:20;background:#fbfdfeef;border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
 .header-inner{height:78px;display:flex;align-items:center;justify-content:space-between;gap:28px}
-.brand{display:inline-flex;align-items:center;gap:8px;font:700 20px/1 Georgia,serif;white-space:nowrap}
+.brand{display:inline-flex;align-items:center;gap:8px;font:700 20px/1 "DM Sans",Arial,sans-serif;white-space:nowrap}
 .brand img{width:32px;height:45px;object-fit:contain}
 .site-header nav{display:flex;align-items:center;gap:33px;font-size:15px;color:#526572}
 .site-header nav a:hover,.footer a:hover{color:var(--teal)}
@@ -35,7 +35,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,su
 .trust-grid p{min-height:114px;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:24px 30px;border-right:1px solid var(--line)}
 .trust-grid p:first-child{padding-left:0}
 .trust-grid p:last-child{border-right:0}
-.trust-grid strong{font:700 23px/1.2 Georgia,serif}
+.trust-grid strong{font:700 23px/1.2 "DM Sans",Arial,sans-serif}
 .trust-grid span{font-size:13px;color:var(--muted);line-height:1.4}
 .problem{background:#fbfdfe}
 .problem h2{max-width:780px;margin-bottom:48px}
@@ -72,7 +72,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,su
 .eyebrow{font-size:12px;font-weight:700;letter-spacing:.15em;color:#476b79}
 .about-card h2{margin:20px 0 10px}
 .about-role{font-weight:700;color:#356377}
-.about-card blockquote{border-left:4px solid var(--green);padding-left:18px;margin:24px 0;font:700 22px/1.5 Georgia,serif}
+.about-card blockquote{border-left:4px solid var(--green);padding-left:18px;margin:24px 0;font:700 22px/1.5 "DM Sans",Arial,sans-serif}
 .fact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .fact-grid p{font-size:12px;line-height:1.5;color:var(--muted)}
 .fact-grid strong{display:block;font-size:14px;color:var(--ink);margin-bottom:6px}
@@ -86,7 +86,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,su
 .timeline article{position:relative;padding-top:55px}
 .timeline article:before{content:"";position:absolute;top:18px;left:17px;right:-25px;border-top:1px solid #a6cdd5}
 .timeline article:last-child:before{display:none}
-.timeline-dot{position:absolute;top:0;left:0;display:grid;place-items:center;width:38px;height:38px;border:1px solid var(--teal);border-radius:50%;background:white;color:var(--navy);font:700 16px Georgia,serif;z-index:1}
+.timeline-dot{position:absolute;top:0;left:0;display:grid;place-items:center;width:38px;height:38px;border:1px solid var(--teal);border-radius:50%;background:white;color:var(--navy);font:700 16px "DM Sans",Arial,sans-serif;z-index:1}
 .timeline-dot.done{background:var(--green);border-color:var(--green)}
 .timeline small{color:#477281;font-weight:700}
 .timeline h3{font-size:20px;margin:10px 0}
@@ -97,7 +97,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,su
 .reviews h2{max-width:730px}
 .review-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .review-grid figure{min-height:300px;padding:30px;background:white;border:1px solid var(--line);border-radius:18px;display:flex;flex-direction:column}
-.review-grid blockquote{font:700 20px/1.55 Georgia,serif;margin:0 0 28px}
+.review-grid blockquote{font:700 20px/1.55 "DM Sans",Arial,sans-serif;margin:0 0 28px}
 .review-grid figcaption{margin-top:auto;font-size:13px;font-weight:700}
 .review-grid a:not(.review-image){font-size:12px;color:var(--teal);margin-top:9px;text-decoration:underline}
 .review-image{display:block;max-height:230px;overflow:hidden;border-radius:8px;margin-bottom:18px}
@@ -115,7 +115,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,su
 .booking h2{text-align:center;margin:18px auto 45px}
 .booking-grid{display:grid;grid-template-columns:.42fr .58fr;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:white}
 .price-card{padding:45px;background:var(--navy);color:white}
-.price-card>strong{font:700 50px/1.1 Georgia,serif}
+.price-card>strong{font:700 50px/1.1 "DM Sans",Arial,sans-serif}
 .price-card>p{margin:12px 0 27px;color:#d9e7ec}
 .price-card li{position:relative;padding-left:27px;margin:18px 0}
 .price-card li:before{content:"✓";position:absolute;left:0;color:var(--green)}
