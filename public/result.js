@@ -1,4 +1,9 @@
-import { COUNTRY_PROFILES } from '/country-profiles.js';
+let COUNTRY_PROFILES = [];
+try {
+  ({ COUNTRY_PROFILES = [] } = await import('/country-profiles.js'));
+} catch {
+  // Keep the personal result usable if optional country reference data is unavailable.
+}
 
 const chart = document.getElementById('result-chart');
 const app = document.getElementById('result-app');
@@ -48,7 +53,7 @@ function renderCountryOptions() {
   if (!countrySelect || !countryStatus) return;
   if (!COUNTRY_PROFILES.length) {
     countrySelect.disabled = true;
-    countryStatus.textContent = 'Chưa tải được bảng hồ sơ quốc gia. Vui lòng tải lại trang hoặc liên hệ hỗ trợ.';
+    countryStatus.textContent = 'Bảng tham chiếu quốc gia hiện chưa khả dụng. Bạn vẫn có thể xem và tải kết quả 5 chiều.';
     return;
   }
   countrySelect.innerHTML = '<option value="">Chọn một nước để so sánh</option>' + COUNTRY_PROFILES.map(profile => `<option value="${escapeHtml(profile.id)}">${escapeHtml(countryLabel(profile))}</option>`).join('');
