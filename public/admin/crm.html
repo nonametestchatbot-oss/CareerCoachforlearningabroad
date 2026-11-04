@@ -15,18 +15,16 @@
     <section class="auth-card" id="auth-view">
       <p class="eyebrow">LINH COACH · CRM</p>
       <h1>Đăng nhập Lead Hub</h1>
-      <p class="muted">Nhập email quản trị đã được cấp quyền. Hệ thống sẽ gửi mã xác thực 6 chữ số.</p>
+      <p class="muted">Nhập email quản trị đã được cấp quyền. Hệ thống sẽ gửi một liên kết đăng nhập dùng một lần.</p>
       <form id="email-form">
         <label for="admin-email">Email quản trị</label>
         <input id="admin-email" type="email" autocomplete="email" required placeholder="ten@linhcoach-eqstrength.com">
-        <button class="primary-button" type="submit">Gửi mã xác thực</button>
+        <button class="primary-button" type="submit">Gửi link đăng nhập</button>
       </form>
-      <form id="otp-form" hidden>
-        <label for="admin-otp">Mã xác thực</label>
-        <input id="admin-otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required placeholder="000000">
-        <button class="primary-button" type="submit">Vào CRM</button>
-        <button class="text-button" id="change-email" type="button">Đổi email</button>
-      </form>
+      <div id="magic-link-view" hidden>
+        <p class="magic-link-note">Link đăng nhập đã được gửi. Mở email mới nhất và bấm nút đăng nhập; bạn sẽ được đưa trở lại Lead Hub.</p>
+        <button class="text-button" id="change-email" type="button">Dùng email khác</button>
+      </div>
       <p class="status-message" id="auth-status" role="status" aria-live="polite"></p>
     </section>
 
