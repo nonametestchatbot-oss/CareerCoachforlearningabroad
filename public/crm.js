@@ -108,7 +108,7 @@ function hydrateMagicLinkSession() {
   const refreshToken = params.get('refresh_token');
   if (!accessToken || !refreshToken) return null;
   const expiresIn = Number(params.get('expires_in') || 3600);
-  window.history.replaceState(null, '', \`${window.location.pathname}${window.location.search}\`);
+  window.history.replaceState(null, '', window.location.pathname + window.location.search);
   return { accessToken, refreshToken, expiresIn, user: { email: 'Quản trị viên' } };
 }
 
