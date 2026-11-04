@@ -1,9 +1,12 @@
-// Supabase magic links can occasionally return to the project Site URL.\n// Forward a valid session callback to the protected CRM entry point.\n(function forwardCrmMagicLink() {\n  const hash = window.location.hash || '';\n  if (hash.includes('access_token=') && hash.includes('refresh_token=')) {\n    const link = document.createElement('a');
-    link.href = '/admin/crm' + hash;
-    link.rel = 'nofollow';
-    link.hidden = true;
-    document.body.appendChild(link);
-    link.click();\n  }\n})();\n\nconst form = document.getElementById('lead-form');
+// Supabase can fall back to the project Site URL after a magic-link callback.
+(function forwardCrmMagicLink() {
+  const hash = window.location.hash || '';
+  if (hash.includes('access_token=') && hash.includes('refresh_token=')) {
+    window.location.assign('/admin/crm' + hash);
+  }
+})();
+
+const form = document.getElementById('lead-form');
 const formStatus = document.getElementById('form-status');
 const paymentPanel = document.getElementById('payment-panel');
 const paymentStatus = document.getElementById('payment-status');
