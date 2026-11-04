@@ -1,5 +1,5 @@
 import { sendCrmOtp, verifyCrmOtp, requireCrmAdmin } from '../lib/crm-auth.js';
-import { listLeads, upsertLead, updateLead, addLeadActivity } from '../lib/crm.js';
+import { listLeads, upsertLead, updateLead, addLeadActivity, getLeadProfile, addLeadEmailHistory } from '../lib/crm.js';
 
 function bodyOf(req) {
   return typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
@@ -70,12 +70,29 @@ export default async function handler(req, res) {
     }
 
     if (action === 'lead') {
-      if (req.method !== 'PATCH') return res.status(405).json({ ok: false, error: 'Method not allowed' });
       const id = String(req.query?.id || '').trim();
       if (!id) return res.status(400).json({ ok: false, error: 'Lead id is required' });
+      if (req.method === 'GET') {
+        const profile = await getLeadProfile(id);
+        if (!profile) return res.status(404).json({ ok: false, error: 'Lead not found' });
+        return res.status(200).json({ ok: true, ...profile });
+      }
+      if (req.method !== 'PATCH') return res.status(405).json({ ok: false, error: 'Method not allowed' });
       const lead = await updateLead(id, bodyOf(req));
       if (!lead) return res.status(404).json({ ok: false, error: 'Lead not found' });
       return res.status(200).json({ ok: true, lead });
+    }
+
+    if (action === 'email-history') {
+      if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
+      const body = bodyOf(req);
+      if (!body.leadId) return res.status(400).json({ ok: false, error: 'Lead id is required' });
+      const email = await addLeadEmailHistory(body.leadId, {
+        subject: body.subject,
+        note: body.note,
+        sentAt: body.sentAt
+      });
+      return res.status(201).json({ ok: true, email });
     }
 
     if (action === 'activity') {
