@@ -35,6 +35,11 @@
         <div><p class="eyebrow">LINH COACH · LEAD HUB</p><h1>Pipeline khách hàng</h1><p class="muted">Theo dõi lead từ form đến lịch hẹn và giao dịch.</p></div>
         <div class="header-actions"><span class="signed-in" id="signed-in"></span><button class="secondary-button" id="logout-button" type="button">Đăng xuất</button></div>
       </header>
+      <nav class="view-tabs" aria-label="Khu vực CRM">
+        <button class="view-tab is-active" data-view="pipeline-view" type="button">Pipeline</button>
+        <button class="view-tab" data-view="customers-view" type="button">Khách hàng</button>
+      </nav>
+      <section class="crm-view" id="pipeline-view">
       <section class="toolbar" aria-label="Bộ lọc lead">
         <label>Nguồn<select id="source-filter"><option value="">Tất cả nguồn</option></select></label>
         <label>Trạng thái<select id="status-filter"><option value="">Tất cả trạng thái</option></select></label>
@@ -44,6 +49,43 @@
       </section>
       <p class="status-message" id="app-status" role="status" aria-live="polite"></p>
       <section class="pipeline" id="pipeline" aria-label="Pipeline lead"></section>
+      </section>
+      <section class="crm-view" id="customers-view" hidden>
+        <section class="toolbar customer-toolbar" aria-label="Tìm kiếm và lọc khách hàng">
+          <label class="search-field">Tìm kiếm khách hàng<input id="customer-search" type="search" placeholder="Tên, email hoặc số điện thoại"></label>
+          <label>Nguồn<select id="customer-source-filter"><option value="">Tất cả nguồn</option></select></label>
+          <label>Trạng thái<select id="customer-status-filter"><option value="">Tất cả trạng thái</option></select></label>
+          <label>Score từ<input id="customer-score-filter" type="number" min="0" max="100" placeholder="0"></label>
+          <button class="secondary-button" id="customer-refresh-button" type="button">Làm mới</button>
+        </section>
+        <div class="customer-layout">
+          <section class="customer-list-panel" aria-label="Danh sách khách hàng">
+            <div class="panel-heading"><h2>Khách hàng</h2><span class="muted" id="customer-count"></span></div>
+            <div class="customer-list" id="customer-list"></div>
+          </section>
+          <aside class="customer-profile" id="customer-profile" aria-label="Hồ sơ khách hàng" hidden>
+            <div class="profile-header"><div><p class="eyebrow">HỒ SƠ KHÁCH HÀNG</p><h2 id="profile-name">—</h2><p class="muted" id="profile-contact">—</p></div><button class="text-button" id="close-profile" type="button">Đóng</button></div>
+            <p class="status-message" id="profile-status" role="status" aria-live="polite"></p>
+            <form id="profile-form" class="profile-form">
+              <div class="profile-grid">
+                <label>Tên<input name="name" required maxlength="120"></label>
+                <label>Email<input name="email" type="email" maxlength="160"></label>
+                <label>Điện thoại<input name="phone" maxlength="40"></label>
+                <label>Nguồn<input name="source" maxlength="120"></label>
+                <label>Trạng thái<select name="status"></select></label>
+                <label>Ngày follow-up<input name="nextFollowUpAt" type="date"></label>
+                <label class="full-width">Nhu cầu<textarea name="need" rows="3" maxlength="500"></textarea></label>
+                <label class="full-width">Việc tiếp theo<textarea name="nextAction" rows="2" maxlength="500"></textarea></label>
+                <label class="full-width">Ghi chú nội bộ<textarea name="internalNote" rows="3" maxlength="1000" placeholder="Ghi chú chỉ dành cho quản trị viên"></textarea></label>
+              </div>
+              <div class="profile-score" id="profile-score">Score: —</div>
+              <div class="profile-actions"><button class="secondary-button" id="mark-done-button" type="button">Đánh dấu việc đã làm</button><button class="primary-button" type="submit">Lưu thay đổi</button></div>
+            </form>
+            <section class="profile-section"><div class="section-heading"><h3>Lịch sử email</h3></div><form id="email-history-form" class="email-history-form"><input name="subject" required maxlength="200" placeholder="Tiêu đề email đã gửi"><input name="note" maxlength="500" placeholder="Ghi chú ngắn (tuỳ chọn)"><button class="secondary-button" type="submit">Ghi email</button></form><div id="email-history" class="timeline"></div></section>
+            <section class="profile-section"><div class="section-heading"><h3>Lịch sử hoạt động</h3></div><div id="activity-history" class="timeline"></div></section>
+          </aside>
+        </div>
+      </section>
     </section>
   </main>
 
@@ -72,7 +114,5 @@
   <script src="/crm.js" type="module"></script>
 </body>
 </html>
-
-
 
 
