@@ -17,12 +17,26 @@ const dialogEyebrow = document.getElementById('dialog-eyebrow');
 const dialogStatus = document.getElementById('dialog-status');
 const dialogScore = document.getElementById('dialog-score');
 const activityField = document.getElementById('activity-field');
+const customerSearch = document.getElementById('customer-search');
+const customerSourceFilter = document.getElementById('customer-source-filter');
+const customerStatusFilter = document.getElementById('customer-status-filter');
+const customerScoreFilter = document.getElementById('customer-score-filter');
+const customerList = document.getElementById('customer-list');
+const customerCount = document.getElementById('customer-count');
+const customerProfile = document.getElementById('customer-profile');
+const profileForm = document.getElementById('profile-form');
+const profileStatus = document.getElementById('profile-status');
+const activityHistory = document.getElementById('activity-history');
+const emailHistory = document.getElementById('email-history');
+const emailHistoryForm = document.getElementById('email-history-form');
 const statusLabels = {new:'Mới', contacted:'Đã liên hệ', qualified:'Đủ điều kiện', booked:'Đặt lịch', won:'Đã mua', not_fit:'Chưa phù hợp'};
 const statusKeys = Object.keys(statusLabels);
 const sessionKey = 'linhCoachCrmSession';
 let session = null;
 let leads = [];
 let editingLead = null;
+let selectedCustomerId = null;
+let selectedProfile = null;
 
 function escapeHtml(value) { return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
 function setStatus(element, message, error = false) { element.textContent = message; element.classList.toggle('error', error); }
@@ -34,7 +48,8 @@ async function api(path, options = {}) {
     '/api/crm-auth-request': '/api/crm?action=auth-request',
     '/api/crm-auth-verify': '/api/crm?action=auth-verify',
     '/api/crm-leads': '/api/crm?action=leads',
-    '/api/crm-activity': '/api/crm?action=activity'
+    '/api/crm-activity': '/api/crm?action=activity',
+    '/api/crm-email-history': '/api/crm?action=email-history'
   };
   if (routeMap[path]) path = routeMap[path];
   else if (path.startsWith('/api/crm-lead?')) path = path.replace('/api/crm-lead?', '/api/crm?action=lead&');
@@ -70,25 +85,124 @@ document.getElementById('logout-button').addEventListener('click', () => { clear
 document.getElementById('refresh-button').addEventListener('click', loadLeads);
 [sourceFilter, statusFilter, scoreFilter].forEach(element => element.addEventListener('input', renderBoard));
 document.getElementById('add-lead-button').addEventListener('click', () => openLeadDialog(null));
+document.querySelectorAll('.view-tab').forEach(tab => tab.addEventListener('click', () => {
+  document.querySelectorAll('.view-tab').forEach(item => item.classList.toggle('is-active', item === tab));
+  document.querySelectorAll('.crm-view').forEach(view => { view.hidden = view.id !== tab.dataset.view; });
+  if (tab.dataset.view === 'customers-view') renderCustomers();
+}));
+[customerSearch, customerSourceFilter, customerStatusFilter, customerScoreFilter].forEach(element => element.addEventListener('input', renderCustomers));
+document.getElementById('customer-refresh-button').addEventListener('click', loadLeads);
+document.getElementById('close-profile').addEventListener('click', () => { customerProfile.hidden = true; selectedCustomerId = null; selectedProfile = null; });
+profileForm.addEventListener('submit', saveCustomerProfile);
+document.getElementById('mark-done-button').addEventListener('click', markTaskDone);
+emailHistoryForm.addEventListener('submit', saveEmailHistory);
 
 function fillStatusOptions() {
   const current = leadForm.elements.status.value;
   leadForm.elements.status.innerHTML = statusKeys.map(key => `<option value="${key}">${statusLabels[key]}</option>`).join('');
   leadForm.elements.status.value = current || 'new';
   statusFilter.innerHTML = '<option value="">Tất cả trạng thái</option>' + statusKeys.map(key => `<option value="${key}">${statusLabels[key]}</option>`).join('');
+  profileForm.elements.status.innerHTML = statusKeys.map(key => `<option value="${key}">${statusLabels[key]}</option>`).join('');
+  customerStatusFilter.innerHTML = '<option value="">Tất cả trạng thái</option>' + statusKeys.map(key => `<option value="${key}">${statusLabels[key]}</option>`).join('');
 }
 function populateFilters() {
   const current = sourceFilter.value;
   const sources = [...new Set(leads.map(lead => lead.source).filter(Boolean))].sort();
   sourceFilter.innerHTML = '<option value="">Tất cả nguồn</option>' + sources.map(source => `<option value="${escapeHtml(source)}">${escapeHtml(source)}</option>`).join('');
   sourceFilter.value = sources.includes(current) ? current : '';
+  const customerCurrent = customerSourceFilter.value;
+  customerSourceFilter.innerHTML = '<option value="">Tất cả nguồn</option>' + sources.map(source => `<option value="${escapeHtml(source)}">${escapeHtml(source)}</option>`).join('');
+  customerSourceFilter.value = sources.includes(customerCurrent) ? customerCurrent : '';
 }
 function visibleLeads() {
   const minScore = scoreFilter.value === '' ? null : Number(scoreFilter.value);
   return leads.filter(lead => (!sourceFilter.value || lead.source === sourceFilter.value) && (!statusFilter.value || lead.status === statusFilter.value) && (minScore === null || (Number.isFinite(lead.score) && lead.score >= minScore)));
 }
+function visibleCustomers() {
+  const query = String(customerSearch.value || '').trim().toLowerCase();
+  const minScore = customerScoreFilter.value === '' ? null : Number(customerScoreFilter.value);
+  return leads.filter(lead => {
+    const haystack = [lead.name, lead.email, lead.phone].filter(Boolean).join(' ').toLowerCase();
+    return (!query || haystack.includes(query)) && (!customerSourceFilter.value || lead.source === customerSourceFilter.value) && (!customerStatusFilter.value || lead.status === customerStatusFilter.value) && (minScore === null || (Number.isFinite(lead.score) && lead.score >= minScore));
+  });
+}
 function formatDate(value) { return value ? new Intl.DateTimeFormat('vi-VN', {dateStyle:'short', timeStyle:'short'}).format(new Date(value)) : 'Chưa có'; }
+function formatDay(value) { return value ? new Intl.DateTimeFormat('vi-VN', {dateStyle:'medium'}).format(new Date(value)) : 'Chưa đặt'; }
 function scoreLabel(lead) { return Number.isFinite(Number(lead.score)) ? `<strong class="score-value">${lead.score}</strong><span>Phù hợp ${lead.fit_score ?? '—'} · Ý định ${lead.intent_score ?? '—'} · Tương tác ${lead.engagement_score ?? '—'}</span>` : '<span class="score-missing">Chưa đủ dữ liệu để chấm</span>'; }
+function customerRow(lead) {
+  const active = selectedCustomerId === lead.id ? ' is-selected' : '';
+  return `<button class="customer-row${active}" data-customer-id="${escapeHtml(lead.id)}" type="button"><span class="customer-main"><strong>${escapeHtml(lead.name)}</strong><small>${escapeHtml(lead.email || lead.phone || 'Chưa có liên hệ')}</small></span><span class="customer-source">${escapeHtml(lead.source || 'Không rõ nguồn')}</span><span class="customer-status">${escapeHtml(statusLabels[lead.status] || lead.status)}</span><span class="customer-score">${Number.isFinite(Number(lead.score)) ? `${lead.score}/100` : '—'}</span></button>`;
+}
+function renderCustomers() {
+  const filtered = visibleCustomers();
+  customerCount.textContent = `${filtered.length} khách hàng`;
+  customerList.innerHTML = filtered.length ? filtered.map(customerRow).join('') : '<p class="empty-state">Chưa có khách hàng phù hợp bộ lọc.</p>';
+  customerList.querySelectorAll('[data-customer-id]').forEach(row => row.addEventListener('click', () => openCustomerProfile(row.dataset.customerId)));
+}
+function profileScore(lead) {
+  document.getElementById('profile-score').innerHTML = Number.isFinite(Number(lead.score)) ? `<strong>Score ${lead.score}/100</strong><span>Phù hợp ${lead.fit_score ?? '—'} · Ý định ${lead.intent_score ?? '—'} · Tương tác ${lead.engagement_score ?? '—'}</span><small>Lý do: ${escapeHtml(JSON.stringify(lead.score_reasons || {}) || 'Chưa ghi lý do')}</small>` : '<strong>Score: chưa đủ dữ liệu</strong><small>Chỉ chấm khi có đủ Phù hợp, Ý định và Tương tác.</small>';
+}
+function renderTimeline(profile) {
+  activityHistory.innerHTML = profile.activities?.length ? profile.activities.map(item => `<article class="timeline-item"><strong>${escapeHtml(item.activity_type === 'pipeline_status_changed' ? 'Thay đổi Pipeline' : item.activity_type === 'task_done' ? 'Đã đánh dấu việc đã làm' : 'Ghi chú')}</strong><time>${escapeHtml(formatDate(item.occurred_at))}</time><p>${escapeHtml(item.note || 'Không có ghi chú')}</p></article>`).join('') : '<p class="empty-state">Chưa có hoạt động.</p>';
+  emailHistory.innerHTML = profile.emails?.length ? profile.emails.map(item => `<article class="timeline-item"><strong>${escapeHtml(item.subject)}</strong><time>${escapeHtml(formatDate(item.sent_at))}</time>${item.note ? `<p>${escapeHtml(item.note)}</p>` : ''}</article>`).join('') : '<p class="empty-state">Chưa ghi nhận email nào.</p>';
+}
+function fillProfileForm(lead) {
+  profileForm.elements.name.value = lead.name || '';
+  profileForm.elements.email.value = lead.email || '';
+  profileForm.elements.phone.value = lead.phone || '';
+  profileForm.elements.source.value = lead.source || '';
+  profileForm.elements.status.value = lead.status || 'new';
+  profileForm.elements.nextFollowUpAt.value = lead.next_follow_up_at ? String(lead.next_follow_up_at).slice(0, 10) : '';
+  profileForm.elements.need.value = lead.need || '';
+  profileForm.elements.nextAction.value = lead.next_action || '';
+  profileForm.elements.internalNote.value = '';
+  document.getElementById('profile-name').textContent = lead.name || 'Khách hàng';
+  document.getElementById('profile-contact').textContent = [lead.email, lead.phone].filter(Boolean).join(' · ') || 'Chưa có thông tin liên hệ';
+  profileScore(lead);
+}
+async function openCustomerProfile(id) {
+  selectedCustomerId = id;
+  renderCustomers();
+  customerProfile.hidden = false;
+  setStatus(profileStatus, 'Đang tải hồ sơ…');
+  try {
+    selectedProfile = await api(`/api/crm-lead?id=${encodeURIComponent(id)}`);
+    fillProfileForm(selectedProfile.lead);
+    renderTimeline(selectedProfile);
+    setStatus(profileStatus, '');
+    customerProfile.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (error) { setStatus(profileStatus, error.message, true); }
+}
+function profileBody(formData) {
+  const current = selectedProfile.lead;
+  return { name: formData.get('name'), email: formData.get('email') || current.email || '', phone: formData.get('phone') || current.phone || '', source: formData.get('source'), status: formData.get('status'), nextFollowUpAt: formData.get('nextFollowUpAt'), need: formData.get('need'), nextAction: formData.get('nextAction'), fitScore: current.fit_score, intentScore: current.intent_score, engagementScore: current.engagement_score, scoreReasons: current.score_reasons || {}, landingPageUrl: current.landing_page_url || '', utm: current.utm || {}, student: current.student_context || '' };
+}
+async function saveCustomerProfile(event) {
+  event.preventDefault();
+  if (!selectedProfile?.lead) return;
+  const button = profileForm.querySelector('button[type="submit"]'); button.disabled = true; setStatus(profileStatus, 'Đang lưu…');
+  try {
+    const formData = new FormData(profileForm);
+    const data = await api(`/api/crm-lead?id=${encodeURIComponent(selectedProfile.lead.id)}`, { method: 'PATCH', body: JSON.stringify(profileBody(formData)) });
+    const index = leads.findIndex(item => item.id === data.lead.id); if (index >= 0) leads[index] = data.lead;
+    const note = String(formData.get('internalNote') || '').trim();
+    if (note) await api('/api/crm-activity', { method: 'POST', body: JSON.stringify({ leadId: data.lead.id, activityType: 'internal_note', note }) });
+    await openCustomerProfile(data.lead.id); populateFilters(); renderBoard(); setStatus(appStatus, 'Đã lưu hồ sơ khách hàng.');
+  } catch (error) { setStatus(profileStatus, error.message, true); } finally { button.disabled = false; }
+}
+async function markTaskDone() {
+  if (!selectedProfile?.lead) return;
+  const button = document.getElementById('mark-done-button'); button.disabled = true;
+  try { await api('/api/crm-activity', { method: 'POST', body: JSON.stringify({ leadId: selectedProfile.lead.id, activityType: 'task_done', note: `Đã hoàn thành: ${selectedProfile.lead.next_action || 'việc tiếp theo'}.` }) }); await openCustomerProfile(selectedProfile.lead.id); }
+  catch (error) { setStatus(profileStatus, error.message, true); } finally { button.disabled = false; }
+}
+async function saveEmailHistory(event) {
+  event.preventDefault();
+  if (!selectedProfile?.lead) return;
+  const button = emailHistoryForm.querySelector('button'); button.disabled = true;
+  try { const data = new FormData(emailHistoryForm); await api('/api/crm-email-history', { method: 'POST', body: JSON.stringify({ leadId: selectedProfile.lead.id, subject: data.get('subject'), note: data.get('note') }) }); emailHistoryForm.reset(); await openCustomerProfile(selectedProfile.lead.id); }
+  catch (error) { setStatus(profileStatus, error.message, true); } finally { button.disabled = false; }
+}
 function leadCard(lead) {
   return `<article class="lead-card" draggable="true" data-id="${escapeHtml(lead.id)}"><h3>${escapeHtml(lead.name)}</h3><p class="lead-meta">${escapeHtml(lead.source || 'Không rõ nguồn')} · ${escapeHtml(lead.email || lead.phone || 'Chưa có liên hệ')}</p><div class="lead-detail"><span><b>Việc tiếp theo:</b> ${escapeHtml(lead.next_action || 'Chưa đặt')}</span><span><b>Tương tác gần nhất:</b> ${escapeHtml(formatDate(lead.latest_interaction_at))}</span></div><div class="lead-score">${scoreLabel(lead)}</div><div class="lead-actions"><button class="edit-button" data-edit="${escapeHtml(lead.id)}" type="button">Mở chi tiết →</button></div></article>`;
 }
@@ -99,8 +213,8 @@ function renderBoard() {
   pipeline.querySelectorAll('.pipeline-column').forEach(column => { column.addEventListener('dragover', event => { event.preventDefault(); column.classList.add('drop-active'); }); column.addEventListener('dragleave', () => column.classList.remove('drop-active')); column.addEventListener('drop', event => { event.preventDefault(); column.classList.remove('drop-active'); const lead = leads.find(item => item.id === event.dataTransfer.getData('text/plain')); if (lead && lead.status !== column.dataset.status) moveLead(lead, column.dataset.status); }); });
 }
 async function moveLead(lead, status) { const old = lead.status; lead.status = status; renderBoard(); setStatus(appStatus, 'Đang cập nhật trạng thái…'); try { await api(`/api/crm-lead?id=${encodeURIComponent(lead.id)}`, {method:'PATCH', body:JSON.stringify(toApiLead(lead))}); setStatus(appStatus, 'Đã cập nhật trạng thái.'); } catch (error) { lead.status = old; renderBoard(); setStatus(appStatus, error.message, true); } }
-function toApiLead(lead) { return {name:lead.name,email:lead.email || '',phone:lead.phone || '',source:lead.source,landingPageUrl:lead.landing_page_url || '',utm:lead.utm || {},need:lead.need || '',student:lead.student_context || '',status:lead.status,fitScore:lead.fit_score,intentScore:lead.intent_score,engagementScore:lead.engagement_score,scoreReasons:lead.score_reasons || {},nextAction:lead.next_action || ''}; }
-async function loadLeads() { setStatus(appStatus, 'Đang tải lead…'); try { const data = await api('/api/crm-leads'); leads = data.leads || []; populateFilters(); renderBoard(); setStatus(appStatus, `${leads.length} lead trong hệ thống.`); } catch (error) { setStatus(appStatus, error.message, true); if (/session|Authentication/i.test(error.message)) { clearSession(); showAuth(); } } }
+function toApiLead(lead) { return {name:lead.name,email:lead.email || '',phone:lead.phone || '',source:lead.source,landingPageUrl:lead.landing_page_url || '',utm:lead.utm || {},need:lead.need || '',student:lead.student_context || '',status:lead.status,fitScore:lead.fit_score,intentScore:lead.intent_score,engagementScore:lead.engagement_score,scoreReasons:lead.score_reasons || {},nextAction:lead.next_action || '',nextFollowUpAt:lead.next_follow_up_at ? String(lead.next_follow_up_at).slice(0, 10) : ''}; }
+async function loadLeads() { setStatus(appStatus, 'Đang tải lead…'); try { const data = await api('/api/crm-leads'); leads = data.leads || []; populateFilters(); renderBoard(); renderCustomers(); setStatus(appStatus, `${leads.length} lead trong hệ thống.`); } catch (error) { setStatus(appStatus, error.message, true); if (/session|Authentication/i.test(error.message)) { clearSession(); showAuth(); } } }
 function openLeadDialog(lead) { editingLead = lead; leadForm.reset(); fillStatusOptions(); dialogTitle.textContent = lead ? 'Cập nhật lead' : 'Thêm lead thủ công'; dialogEyebrow.textContent = lead ? 'LEAD DETAIL' : 'LEAD MỚI'; activityField.hidden = !lead; if (lead) { leadForm.elements.name.value = lead.name || ''; leadForm.elements.email.value = lead.email || ''; leadForm.elements.phone.value = lead.phone || ''; leadForm.elements.source.value = lead.source || ''; leadForm.elements.need.value = lead.need || ''; leadForm.elements.nextAction.value = lead.next_action || ''; leadForm.elements.status.value = lead.status || 'new'; leadForm.elements.fitScore.value = lead.fit_score ?? ''; leadForm.elements.intentScore.value = lead.intent_score ?? ''; leadForm.elements.engagementScore.value = lead.engagement_score ?? ''; leadForm.elements.scoreReasons.value = JSON.stringify(lead.score_reasons || {}, null, 2); } else { leadForm.elements.status.value = 'new'; leadForm.elements.source.value = 'manual'; } updateDialogScore(); dialog.showModal(); }
 ['fitScore','intentScore','engagementScore'].forEach(name => leadForm.elements[name].addEventListener('input', updateDialogScore));
 function updateDialogScore() { const values = ['fitScore','intentScore','engagementScore'].map(name => Number(leadForm.elements[name].value)); const complete = values.every(value => Number.isFinite(value) && value >= 0 && value <= 100); dialogScore.textContent = complete ? `Score: ${Math.round(values[0]*.4 + values[1]*.35 + values[2]*.25)} / 100 (Phù hợp 40% · Ý định 35% · Tương tác 25%)` : 'Score: chưa đủ dữ liệu — không tự suy đoán khi còn thiếu thành phần.'; }
@@ -109,7 +223,5 @@ leadForm.addEventListener('submit', async event => { event.preventDefault(); con
 fillStatusOptions();
 session = readSession();
 if (session?.accessToken) { showApp(); loadLeads(); } else showAuth();
-
-
 
 
