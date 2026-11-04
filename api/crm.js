@@ -27,7 +27,7 @@ export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
     try {
       await sendCrmOtp(bodyOf(req).email);
-      return res.status(200).json({ ok: true, message: 'Mã xác thực đã được gửi đến email quản trị.' });
+      return res.status(200).json({ ok: true, message: 'Link đăng nhập đã được gửi đến email quản trị.' });
     } catch (error) {
       const message = authError(error);
       const status = /giới hạn gửi email/i.test(message) ? 429 : 403;
