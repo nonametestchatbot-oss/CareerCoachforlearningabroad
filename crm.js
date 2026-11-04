@@ -30,6 +30,14 @@ function readSession() { try { return JSON.parse(sessionStorage.getItem(sessionK
 function saveSession(value) { session = value; sessionStorage.setItem(sessionKey, JSON.stringify(value)); }
 function clearSession() { session = null; sessionStorage.removeItem(sessionKey); }
 async function api(path, options = {}) {
+  const routeMap = {
+    '/api/crm-auth-request': '/api/crm?action=auth-request',
+    '/api/crm-auth-verify': '/api/crm?action=auth-verify',
+    '/api/crm-leads': '/api/crm?action=leads',
+    '/api/crm-activity': '/api/crm?action=activity'
+  };
+  if (routeMap[path]) path = routeMap[path];
+  else if (path.startsWith('/api/crm-lead?')) path = path.replace('/api/crm-lead?', '/api/crm?action=lead&');
   const headers = {'Content-Type':'application/json', ...(options.headers || {})};
   if (session?.accessToken) headers.Authorization = `Bearer ${session.accessToken}`;
   const response = await fetch(path, {...options, headers, cache:'no-store'});
