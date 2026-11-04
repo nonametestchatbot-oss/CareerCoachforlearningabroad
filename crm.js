@@ -29,6 +29,18 @@ const profileStatus = document.getElementById('profile-status');
 const activityHistory = document.getElementById('activity-history');
 const emailHistory = document.getElementById('email-history');
 const emailHistoryForm = document.getElementById('email-history-form');
+const nurtureStatus = document.getElementById('nurture-status');
+const nurtureSummary = document.getElementById('nurture-summary');
+const nurturePreview = document.getElementById('nurture-preview');
+const nurturePreviewSelect = document.getElementById('nurture-preview-select');
+const nurtureQueueButton = document.getElementById('nurture-queue-button');
+const nurtureOutbox = document.getElementById('nurture-outbox');
+const nurtureGoal = document.getElementById('nurture-goal');
+const nurtureCondition = document.getElementById('nurture-condition');
+const nurtureSubject = document.getElementById('nurture-subject');
+const nurtureBody = document.getElementById('nurture-body');
+const nurtureCta = document.getElementById('nurture-cta');
+const nurtureStop = document.getElementById('nurture-stop');
 const statusLabels = {new:'Mới', contacted:'Đã liên hệ', qualified:'Đủ điều kiện', booked:'Đặt lịch', won:'Đã mua', not_fit:'Chưa phù hợp'};
 const statusKeys = Object.keys(statusLabels);
 const sessionKey = 'linhCoachCrmSession';
@@ -49,7 +61,10 @@ async function api(path, options = {}) {
     '/api/crm-auth-verify': '/api/crm?action=auth-verify',
     '/api/crm-leads': '/api/crm?action=leads',
     '/api/crm-activity': '/api/crm?action=activity',
-    '/api/crm-email-history': '/api/crm?action=email-history'
+    '/api/crm-email-history': '/api/crm?action=email-history',
+    '/api/crm-nurture-profile': '/api/crm?action=nurture-profile',
+    '/api/crm-nurture-consent': '/api/crm?action=nurture-consent',
+    '/api/crm-nurture-queue': '/api/crm?action=nurture-queue'
   };
   if (routeMap[path]) path = routeMap[path];
   else if (path.startsWith('/api/crm-lead?')) path = path.replace('/api/crm-lead?', '/api/crm?action=lead&');
@@ -96,6 +111,8 @@ document.getElementById('close-profile').addEventListener('click', () => { custo
 profileForm.addEventListener('submit', saveCustomerProfile);
 document.getElementById('mark-done-button').addEventListener('click', markTaskDone);
 emailHistoryForm.addEventListener('submit', saveEmailHistory);
+nurturePreviewSelect.addEventListener('change', renderNurturePreview);
+nurtureQueueButton.addEventListener('click', queueNurture);
 
 function fillStatusOptions() {
   const current = leadForm.elements.status.value;
@@ -146,6 +163,51 @@ function renderTimeline(profile) {
   activityHistory.innerHTML = profile.activities?.length ? profile.activities.map(item => `<article class="timeline-item"><strong>${escapeHtml(item.activity_type === 'pipeline_status_changed' ? 'Thay đổi Pipeline' : item.activity_type === 'task_done' ? 'Đã đánh dấu việc đã làm' : 'Ghi chú')}</strong><time>${escapeHtml(formatDate(item.occurred_at))}</time><p>${escapeHtml(item.note || 'Không có ghi chú')}</p></article>`).join('') : '<p class="empty-state">Chưa có hoạt động.</p>';
   emailHistory.innerHTML = profile.emails?.length ? profile.emails.map(item => `<article class="timeline-item"><strong>${escapeHtml(item.subject)}</strong><time>${escapeHtml(formatDate(item.sent_at))}</time>${item.note ? `<p>${escapeHtml(item.note)}</p>` : ''}</article>`).join('') : '<p class="empty-state">Chưa ghi nhận email nào.</p>';
 }
+const nurtureStatusLabels = { not_started: 'Chưa bắt đầu', outbox_ready: 'Outbox đã tạo · Chưa gửi', blocked: 'Chưa đủ điều kiện', stopped: 'Đã dừng', queued: 'Đang chờ nhà cung cấp', sent: 'Đã xác nhận gửi', failed: 'Gửi lỗi' };
+function renderNurturePreview() {
+  const sequence = selectedProfile?.nurture?.sequence;
+  const index = Number(nurturePreviewSelect.value || 0);
+  const message = sequence?.messages?.[index];
+  if (!message) { nurturePreview.hidden = true; return; }
+  nurturePreview.hidden = false;
+  nurtureGoal.textContent = message.goal;
+  nurtureCondition.textContent = message.condition;
+  nurtureSubject.textContent = message.subject;
+  nurtureBody.innerHTML = escapeHtml(message.body).replace(/\n/g, '<br>');
+  nurtureCta.textContent = message.cta;
+  nurtureStop.textContent = message.stop;
+}
+function renderNurture(nurture) {
+  if (!nurtureStatus) return;
+  const status = nurture?.status || 'not_started';
+  nurtureStatus.textContent = nurtureStatusLabels[status] || status;
+  nurtureStatus.className = `nurture-badge ${['blocked', 'stopped'].includes(status) ? 'is-blocked' : ''}`;
+  const sequence = nurture?.sequence;
+  nurturePreviewSelect.innerHTML = sequence?.messages?.length ? sequence.messages.map((message, index) => `<option value="${index}">Email ${index + 1}: ${escapeHtml(message.subject)}</option>`).join('') : '';
+  const blocked = nurture?.blockedReason;
+  if (!sequence) {
+    nurtureSummary.textContent = blocked || 'Chưa có score để chọn chuỗi email.';
+    nurturePreview.hidden = true;
+    nurtureOutbox.innerHTML = '';
+    nurtureQueueButton.disabled = true;
+    return;
+  }
+  nurtureSummary.textContent = `${sequence.label}. ${nurture.outbox?.length || 0}/${sequence.messages.length} email trong outbox. ${blocked ? `Chưa thể tạo: ${blocked}` : 'Không có email nào được gửi tự động.'}`;
+  nurtureQueueButton.disabled = Boolean(blocked) || ['stopped', 'sent'].includes(status);
+  renderNurturePreview();
+  nurtureOutbox.innerHTML = nurture.outbox?.length ? nurture.outbox.map(item => `<article class="nurture-item"><div class="nurture-item-head"><strong>Email ${item.step}: ${escapeHtml(item.subject)}</strong><span class="nurture-item-status">${escapeHtml(nurtureStatusLabels[item.status] || item.status)}</span></div><small>Dự kiến: ${escapeHtml(formatDate(item.send_after))}</small></article>`).join('') : '<p class="empty-state">Chưa có email trong outbox. Bấm “Tạo outbox — không gửi” sau khi đã có consent.</p>';
+}
+async function queueNurture() {
+  if (!selectedProfile?.lead) return;
+  nurtureQueueButton.disabled = true;
+  setStatus(profileStatus, 'Đang tạo outbox…');
+  try {
+    const data = await api('/api/crm-nurture-queue', { method: 'POST', body: JSON.stringify({ leadId: selectedProfile.lead.id }) });
+    await openCustomerProfile(selectedProfile.lead.id);
+    setStatus(profileStatus, data.inserted ? `Đã tạo ${data.inserted} email nháp trong outbox. Chưa gửi.` : (data.reason || 'Chưa tạo outbox.'));
+  } catch (error) { setStatus(profileStatus, error.message, true); }
+  finally { nurtureQueueButton.disabled = false; }
+}
 function fillProfileForm(lead) {
   profileForm.elements.name.value = lead.name || '';
   profileForm.elements.email.value = lead.email || '';
@@ -156,6 +218,7 @@ function fillProfileForm(lead) {
   profileForm.elements.need.value = lead.need || '';
   profileForm.elements.nextAction.value = lead.next_action || '';
   profileForm.elements.internalNote.value = '';
+  profileForm.elements.emailConsent.checked = Boolean(lead.email_consent);
   document.getElementById('profile-name').textContent = lead.name || 'Khách hàng';
   document.getElementById('profile-contact').textContent = [lead.email, lead.phone].filter(Boolean).join(' · ') || 'Chưa có thông tin liên hệ';
   profileScore(lead);
@@ -169,13 +232,14 @@ async function openCustomerProfile(id) {
     selectedProfile = await api(`/api/crm-lead?id=${encodeURIComponent(id)}`);
     fillProfileForm(selectedProfile.lead);
     renderTimeline(selectedProfile);
+    renderNurture(selectedProfile.nurture);
     setStatus(profileStatus, '');
     customerProfile.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (error) { setStatus(profileStatus, error.message, true); }
 }
 function profileBody(formData) {
   const current = selectedProfile.lead;
-  return { name: formData.get('name'), email: formData.get('email') || current.email || '', phone: formData.get('phone') || current.phone || '', source: formData.get('source'), status: formData.get('status'), nextFollowUpAt: formData.get('nextFollowUpAt'), need: formData.get('need'), nextAction: formData.get('nextAction'), fitScore: current.fit_score, intentScore: current.intent_score, engagementScore: current.engagement_score, scoreReasons: current.score_reasons || {}, landingPageUrl: current.landing_page_url || '', utm: current.utm || {}, student: current.student_context || '' };
+  return { name: formData.get('name'), email: formData.get('email') || current.email || '', phone: formData.get('phone') || current.phone || '', source: formData.get('source'), status: formData.get('status'), nextFollowUpAt: formData.get('nextFollowUpAt'), need: formData.get('need'), nextAction: formData.get('nextAction'), emailConsent: formData.get('emailConsent') === 'on', fitScore: current.fit_score, intentScore: current.intent_score, engagementScore: current.engagement_score, scoreReasons: current.score_reasons || {}, landingPageUrl: current.landing_page_url || '', utm: current.utm || {}, student: current.student_context || '' };
 }
 async function saveCustomerProfile(event) {
   event.preventDefault();
