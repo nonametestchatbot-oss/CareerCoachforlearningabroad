@@ -1,9 +1,8 @@
 const authView = document.getElementById('auth-view');
 const appView = document.getElementById('app-view');
 const emailForm = document.getElementById('email-form');
-const otpForm = document.getElementById('otp-form');
+const magicLinkView = document.getElementById('magic-link-view');
 const emailInput = document.getElementById('admin-email');
-const otpInput = document.getElementById('admin-otp');
 const authStatus = document.getElementById('auth-status');
 const appStatus = document.getElementById('app-status');
 const pipeline = document.getElementById('pipeline');
@@ -45,28 +44,24 @@ async function api(path, options = {}) {
   if (!response.ok || !data.ok) throw new Error(data.error || 'Không thể kết nối CRM');
   return data;
 }
-function showAuth() { authView.hidden = false; appView.hidden = true; }
+function showAuth() { authView.hidden = false; appView.hidden = true; emailForm.hidden = false; magicLinkView.hidden = true; }
 function showApp() { authView.hidden = true; appView.hidden = false; document.getElementById('signed-in').textContent = session?.user?.email || ''; }
 
 emailForm.addEventListener('submit', async event => {
   event.preventDefault();
   const email = emailInput.value.trim();
   const button = emailForm.querySelector('button'); button.disabled = true;
-  setStatus(authStatus, 'Đang gửi mã xác thực…');
-  try { await api('/api/crm-auth-request', {method:'POST', body:JSON.stringify({email})}); emailForm.hidden = true; otpForm.hidden = false; otpInput.focus(); setStatus(authStatus, 'Mã đã được gửi. Kiểm tra hộp thư và nhập mã 6 chữ số.'); }
-  catch (error) { setStatus(authStatus, error.message, true); }
+  setStatus(authStatus, 'Đang gửi link đăng nhập…');
+  try {
+    await api('/api/crm-auth-request', {method:'POST', body:JSON.stringify({email})});
+    emailForm.hidden = true;
+    magicLinkView.hidden = false;
+    setStatus(authStatus, 'Đã gửi link đăng nhập. Mở email mới nhất và bấm nút đăng nhập.');
+  } catch (error) { setStatus(authStatus, error.message, true); }
   finally { button.disabled = false; }
 });
-otpForm.addEventListener('submit', async event => {
-  event.preventDefault();
-  const button = otpForm.querySelector('button[type="submit"]'); button.disabled = true;
-  setStatus(authStatus, 'Đang xác minh…');
-  try { const data = await api('/api/crm-auth-verify', {method:'POST', body:JSON.stringify({email:emailInput.value.trim(), otp:otpInput.value.trim()})}); saveSession(data); showApp(); await loadLeads(); }
-  catch (error) { setStatus(authStatus, error.message, true); }
-  finally { button.disabled = false; }
-});
-document.getElementById('change-email').addEventListener('click', () => { otpForm.hidden = true; emailForm.hidden = false; otpInput.value = ''; setStatus(authStatus, ''); emailInput.focus(); });
-document.getElementById('logout-button').addEventListener('click', () => { clearSession(); showAuth(); emailForm.hidden = false; otpForm.hidden = true; emailInput.value = ''; otpInput.value = ''; });
+document.getElementById('change-email').addEventListener('click', () => { magicLinkView.hidden = true; emailForm.hidden = false; setStatus(authStatus, ''); emailInput.focus(); });
+document.getElementById('logout-button').addEventListener('click', () => { clearSession(); showAuth(); emailInput.value = ''; });
 document.getElementById('refresh-button').addEventListener('click', loadLeads);
 [sourceFilter, statusFilter, scoreFilter].forEach(element => element.addEventListener('input', renderBoard));
 document.getElementById('add-lead-button').addEventListener('click', () => openLeadDialog(null));
@@ -106,9 +101,29 @@ function openLeadDialog(lead) { editingLead = lead; leadForm.reset(); fillStatus
 function updateDialogScore() { const values = ['fitScore','intentScore','engagementScore'].map(name => Number(leadForm.elements[name].value)); const complete = values.every(value => Number.isFinite(value) && value >= 0 && value <= 100); dialogScore.textContent = complete ? `Score: ${Math.round(values[0]*.4 + values[1]*.35 + values[2]*.25)} / 100 (Phù hợp 40% · Ý định 35% · Tương tác 25%)` : 'Score: chưa đủ dữ liệu — không tự suy đoán khi còn thiếu thành phần.'; }
 leadForm.addEventListener('submit', async event => { event.preventDefault(); const button = document.getElementById('save-lead-button'); button.disabled = true; setStatus(dialogStatus, 'Đang lưu…'); const formData = new FormData(leadForm); const body = {name:formData.get('name'),email:formData.get('email'),phone:formData.get('phone'),source:formData.get('source'),need:formData.get('need'),nextAction:formData.get('nextAction'),status:formData.get('status'),fitScore:formData.get('fitScore'),intentScore:formData.get('intentScore'),engagementScore:formData.get('engagementScore')}; try { body.scoreReasons = JSON.parse(String(formData.get('scoreReasons') || '{}')); } catch { body.scoreReasons = {note:String(formData.get('scoreReasons') || '').slice(0,1000)}; } try { let saved; if (editingLead) { saved = (await api(`/api/crm-lead?id=${encodeURIComponent(editingLead.id)}`, {method:'PATCH', body:JSON.stringify({...body,email:body.email || editingLead.email || '',phone:body.phone || editingLead.phone || '',landingPageUrl:editingLead.landing_page_url || '',utm:editingLead.utm || {},student:editingLead.student_context || ''})})).lead; const note = String(formData.get('activityNote') || '').trim(); if (note) await api('/api/crm-activity', {method:'POST', body:JSON.stringify({leadId:editingLead.id,note,activityType:'manual_note'})}); } else saved = (await api('/api/crm-leads', {method:'POST', body:JSON.stringify(body)})).lead; const index = leads.findIndex(lead => lead.id === saved.id); if (index >= 0) leads[index] = saved; else leads.unshift(saved); populateFilters(); renderBoard(); dialog.close(); setStatus(appStatus, 'Đã lưu lead.'); } catch (error) { setStatus(dialogStatus, error.message, true); } finally { button.disabled = false; } });
 
-fillStatusOptions();
-session = readSession();
-if (session?.accessToken) { showApp(); loadLeads(); } else showAuth();
+function hydrateMagicLinkSession() {
+  const rawHash = window.location.hash.replace(/^#/, '');
+  const params = new URLSearchParams(rawHash);
+  const accessToken = params.get('access_token');
+  const refreshToken = params.get('refresh_token');
+  if (!accessToken || !refreshToken) return null;
+  const expiresIn = Number(params.get('expires_in') || 3600);
+  window.history.replaceState(null, '', \`${window.location.pathname}${window.location.search}\`);
+  return { accessToken, refreshToken, expiresIn, user: { email: 'Quản trị viên' } };
+}
+
+async function bootstrap() {
+  fillStatusOptions();
+  const callbackSession = hydrateMagicLinkSession();
+  session = callbackSession || readSession();
+  if (session?.accessToken) {
+    saveSession(session);
+    showApp();
+    await loadLeads();
+  } else showAuth();
+}
+
+bootstrap();
 
 
 
