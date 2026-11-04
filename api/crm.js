@@ -9,6 +9,17 @@ function adminError(error) {
   return error.message === 'CRM admin access required' ? 403 : 401;
 }
 
+function authError(error) {
+  const raw = String(error?.message || '');
+  if (/rate limit|over_email_send_rate_limit/i.test(raw)) {
+    return 'Supabase đang giới hạn gửi email. Vui lòng chờ quota email reset rồi thử lại một lần; không cần bấm gửi liên tục.';
+  }
+  if (/invalid.*email|email/i.test(raw) && /admin|permission|not allowed/i.test(raw)) {
+    return 'Email này chưa được cấp quyền quản trị CRM.';
+  }
+  return raw || 'Không thể xử lý đăng nhập CRM.';
+}
+
 export default async function handler(req, res) {
   const action = String(req.query?.action || '').trim();
 
@@ -18,7 +29,9 @@ export default async function handler(req, res) {
       await sendCrmOtp(bodyOf(req).email);
       return res.status(200).json({ ok: true, message: 'Mã xác thực đã được gửi đến email quản trị.' });
     } catch (error) {
-      return res.status(403).json({ ok: false, error: error.message || 'Không gửi được mã xác thực.' });
+      const message = authError(error);
+      const status = /giới hạn gửi email/i.test(message) ? 429 : 403;
+      return res.status(status).json({ ok: false, error: message });
     }
   }
 
@@ -37,7 +50,7 @@ export default async function handler(req, res) {
         user: { email: session.user.email }
       });
     } catch (error) {
-      return res.status(401).json({ ok: false, error: error.message || 'Mã xác thực không đúng hoặc đã hết hạn.' });
+      return res.status(401).json({ ok: false, error: authError(error) });
     }
   }
 
