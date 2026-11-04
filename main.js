@@ -50,12 +50,12 @@ async function checkPayment(code) {
     if (!response.ok || !result.ok) throw new Error('Status unavailable');
     if (result.status === 'Paid') {
       clearInterval(paymentTimer);
-      paymentStatus.textContent = 'Đã xác nhận thanh toán. Hãy mở bài kiểm chứng và hoàn thành trước khi chọn lịch tư vấn.';
+      paymentStatus.textContent = 'Đã xác nhận thanh toán. Ba mẹ có thể gửi đường dẫn bài test này cho con.';
       steps[1].classList.remove('active');
       steps[2].classList.add('active');
       bookingButton.hidden = false;
       bookingButton.href = '/test?code=' + encodeURIComponent(code);
-      bookingButton.textContent = 'Bắt đầu bài kiểm chứng cho con →';
+      bookingButton.textContent = 'Mở bài test cho con →';
     } else if (result.status === 'Underpaid') {
       paymentStatus.textContent = 'Số tiền nhận được chưa đủ 1.000.000đ. Vui lòng liên hệ Linh để được hỗ trợ trước khi chuyển thêm.';
     } else {
@@ -78,8 +78,13 @@ form.addEventListener('submit', async event => {
     name: String(data.get('name') || ''),
     contact: String(data.get('phone') || ''),
     email: String(data.get('email') || ''),
-    student: `${String(data.get('student_name') || '').trim()} — ${String(data.get('student') || '').trim()}`,
-    concern: String(data.get('concern') || '')
+    student: String(data.get('student') || ''),
+    concern: String(data.get('concern') || ''),
+    source: new URLSearchParams(window.location.search).get('utm_source') || document.referrer || 'landing-page',
+    landingPageUrl: window.location.href,
+    utm: JSON.stringify(Object.fromEntries(['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']
+      .map(key => [key, new URLSearchParams(window.location.search).get(key) || ''])
+      .filter(([, value]) => value)))
   });
   try {
     const response = await fetch('/api/register', {
@@ -106,3 +111,4 @@ try {
 } catch {
   sessionStorage.removeItem('linhCoachConsultationOrder');
 }
+

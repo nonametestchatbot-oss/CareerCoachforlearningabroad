@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>CRM | Linh Coach</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/crm.css">
+</head>
+<body>
+  <main class="crm-shell">
+    <section class="auth-card" id="auth-view">
+      <p class="eyebrow">LINH COACH · CRM</p>
+      <h1>Đăng nhập Lead Hub</h1>
+      <p class="muted">Nhập email quản trị đã được cấp quyền. Hệ thống sẽ gửi mã xác thực 6 chữ số.</p>
+      <form id="email-form">
+        <label for="admin-email">Email quản trị</label>
+        <input id="admin-email" type="email" autocomplete="email" required placeholder="ten@linhcoach-eqstrength.com">
+        <button class="primary-button" type="submit">Gửi mã xác thực</button>
+      </form>
+      <form id="otp-form" hidden>
+        <label for="admin-otp">Mã xác thực</label>
+        <input id="admin-otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required placeholder="000000">
+        <button class="primary-button" type="submit">Vào CRM</button>
+        <button class="text-button" id="change-email" type="button">Đổi email</button>
+      </form>
+      <p class="status-message" id="auth-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="app-view" id="app-view" hidden>
+      <header class="crm-header">
+        <div><p class="eyebrow">LINH COACH · LEAD HUB</p><h1>Pipeline khách hàng</h1><p class="muted">Theo dõi lead từ form đến lịch hẹn và giao dịch.</p></div>
+        <div class="header-actions"><span class="signed-in" id="signed-in"></span><button class="secondary-button" id="logout-button" type="button">Đăng xuất</button></div>
+      </header>
+      <section class="toolbar" aria-label="Bộ lọc lead">
+        <label>Nguồn<select id="source-filter"><option value="">Tất cả nguồn</option></select></label>
+        <label>Trạng thái<select id="status-filter"><option value="">Tất cả trạng thái</option></select></label>
+        <label>Score từ<input id="score-filter" type="number" min="0" max="100" placeholder="0"></label>
+        <button class="primary-button" id="add-lead-button" type="button">+ Thêm lead</button>
+        <button class="secondary-button" id="refresh-button" type="button">Làm mới</button>
+      </section>
+      <p class="status-message" id="app-status" role="status" aria-live="polite"></p>
+      <section class="pipeline" id="pipeline" aria-label="Pipeline lead"></section>
+    </section>
+  </main>
+
+  <dialog id="lead-dialog">
+    <form method="dialog" class="dialog-card" id="lead-form">
+      <button class="close-button" value="cancel" aria-label="Đóng">×</button>
+      <p class="eyebrow" id="dialog-eyebrow">LEAD MỚI</p>
+      <h2 id="dialog-title">Thêm lead thủ công</h2>
+      <div class="dialog-grid">
+        <label>Tên *<input name="name" required maxlength="120"></label>
+        <label>Email<input name="email" type="email" maxlength="160"></label>
+        <label>Điện thoại<input name="phone" maxlength="40"></label>
+        <label>Nguồn<input name="source" value="manual" maxlength="120"></label>
+        <label>Nhu cầu<textarea name="need" rows="2" maxlength="500"></textarea></label>
+        <label>Việc tiếp theo<textarea name="nextAction" rows="2" maxlength="500"></textarea></label>
+        <label>Trạng thái<select name="status"></select></label>
+        <div class="score-editor"><p class="field-title">Score (để trống nếu chưa đủ dữ liệu)</p><div class="score-inputs"><label>Phù hợp<input name="fitScore" type="number" min="0" max="100"></label><label>Ý định<input name="intentScore" type="number" min="0" max="100"></label><label>Tương tác<input name="engagementScore" type="number" min="0" max="100"></label></div></div>
+        <label class="full-width">Lý do score<textarea name="scoreReasons" rows="3" placeholder="Ví dụ: Phù hợp 70 vì...; Ý định 40 vì...; Tương tác chưa có dữ liệu."></textarea></label>
+        <label class="full-width" id="activity-field">Ghi chú tương tác mới<textarea name="activityNote" rows="2" placeholder="Ví dụ: Đã gọi điện, hẹn gửi tài liệu..."></textarea></label>
+      </div>
+      <p class="dialog-score" id="dialog-score">Score: chưa đủ dữ liệu</p>
+      <p class="status-message" id="dialog-status" role="status"></p>
+      <div class="dialog-actions"><button class="secondary-button" value="cancel">Hủy</button><button class="primary-button" id="save-lead-button" value="default">Lưu lead</button></div>
+    </form>
+  </dialog>
+  <script src="/crm.js" type="module"></script>
+</body>
+</html>
+
+
+
+

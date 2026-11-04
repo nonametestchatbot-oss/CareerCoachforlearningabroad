@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { upsertLead } from '../lib/crm.js';
 
 const PAYMENT_AMOUNT = 1000000;
 const BANK_CODE = 'OCB';
@@ -41,6 +42,24 @@ export default async function handler(req, res) {
     const result = await upstream.json();
     if (!upstream.ok || !result.ok) throw new Error(result.error || 'Could not save registration');
 
+    // Best-effort CRM upsert: a temporary CRM outage must not interrupt payment.
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        await upsertLead({
+          name: body.name,
+          email: body.email,
+          phone: body.contact,
+          student: body.student,
+          need: body.concern,
+          source: body.source || 'landing-page',
+          landingPageUrl: body.landingPageUrl,
+          utm: body.utm ? JSON.parse(body.utm) : {}
+        });
+      } catch (crmError) {
+        console.error('CRM lead upsert failed:', crmError.message);
+      }
+    }
+
     const qr = new URL('https://vietqr.app/img');
     qr.searchParams.set('acc', paymentAccount);
     qr.searchParams.set('bank', BANK_CODE);
@@ -60,3 +79,4 @@ export default async function handler(req, res) {
     return res.status(502).json({ ok: false, error: 'Could not create payment order' });
   }
 }
+

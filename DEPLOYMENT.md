@@ -41,6 +41,25 @@ Thêm biến mới:
 
 Không đưa các giá trị trên vào mã nguồn, ảnh chụp màn hình, Excel công khai hoặc tin nhắn cho khách hàng.
 
+## Lead Hub CRM
+
+Migration cần chạy thêm trong Supabase SQL Editor:
+
+- `supabase/migrations/20261104_lead_hub_crm.sql`
+
+Thêm biến `CRM_ADMIN_EMAILS` trong Vercel. Đây là danh sách email được phép vào `/admin/crm`, phân cách bằng dấu phẩy nếu có nhiều người. CRM dùng OTP qua Supabase Auth; service role key chỉ chạy ở serverless API, không xuất hiện trong trình duyệt.
+
+CRM lưu lead theo email hoặc số điện thoại đã chuẩn hóa. Khi gửi lại form với cùng một email/số điện thoại, hệ thống cập nhật lead hiện có và thêm một hoạt động mới thay vì tạo thẻ trùng. Điểm tổng chỉ xuất hiện khi có đủ ba thành phần Phù hợp, Ý định và Tương tác; công thức là 40% / 35% / 25%.
+
+## Kiểm thử CRM sau khi triển khai
+
+1. Mở `/admin/crm`, nhập email có trong `CRM_ADMIN_EMAILS`, nhận mã OTP và đăng nhập.
+2. Gửi form landing page với tên, email, số điện thoại và nhu cầu. Bấm làm mới trong CRM; lead phải xuất hiện ở cột **Mới**, kèm nguồn, URL và UTM nếu URL có UTM.
+3. Gửi lại form với cùng email hoặc số điện thoại nhưng đổi nhu cầu. CRM phải cập nhật cùng một thẻ, không tạo thẻ trùng; lịch sử phải có thêm hoạt động `form_submitted`.
+4. Kéo thẻ sang **Đã liên hệ**, tải lại trang và xác nhận trạng thái vẫn được giữ trong database.
+5. Dùng bộ lọc nguồn, trạng thái và điểm tối thiểu. Nếu thiếu dữ liệu score, giao diện phải ghi rõ chưa đủ dữ liệu thay vì tự đoán.
+6. Bấm **Thêm lead**, nhập tối thiểu tên và email hoặc số điện thoại, lưu rồi kiểm tra thẻ mới. Dùng **Ghi chú** để cập nhật lần tương tác gần nhất.
+
 ## Các URL sau khi triển khai
 
 - `/`: landing page
@@ -57,3 +76,4 @@ Không đưa các giá trị trên vào mã nguồn, ảnh chụp màn hình, Ex
 - Khi đổi câu hỏi hoặc quy tắc, cập nhật đồng thời `lib/assessment.js`, `questions.js` và file Excel quy tắc nội bộ.
 - Test thủ công: gửi form thiếu email (phải bị chặn), nhập mã chưa Paid (phải bị chặn), nhập email hợp lệ + OTP (phải vào được), nộp lần hai (phải bị chặn), chờ quá hạn (phải bị chặn), cấp lại grant (phải làm được lượt mới).
 - Trước khi đưa bản mới lên production, chạy `node --test tests/*.test.mjs` và kiểm tra các endpoint sau deploy.
+

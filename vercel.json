@@ -1,12 +1,9 @@
 {
   "cleanUrls": true,
+  "rewrites": [
+    { "source": "/admin/crm", "destination": "/admin/crm.html" }
+  ],
   "headers": [
-    {
-      "source": "/",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store" }
-      ]
-    },
     {
       "source": "/(test|result|api)(.*)",
       "headers": [
@@ -23,3 +20,4 @@
     }
   ]
 }
+

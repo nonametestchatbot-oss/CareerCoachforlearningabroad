@@ -8,11 +8,11 @@
   <title>Bản đồ xu hướng | Linh Coach</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assessment.css?v=20261102">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assessment.css">
   <style>
-    .result-score{font:700 21px "DM Sans",Arial,sans-serif;color:var(--teal-dark);white-space:nowrap}.result-score-note{margin:0 0 12px;color:var(--muted);font-size:13px}.country-comparison{padding:52px 0 74px;border-top:1px solid var(--line)}.country-comparison h2{font-size:clamp(30px,4vw,48px);margin-bottom:14px}.country-intro{color:var(--muted);max-width:740px}.country-select-label{display:block;margin:24px 0 7px;font-size:13px;font-weight:700}.country-select{width:min(440px,100%);padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit}.country-results{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;margin-top:24px}.country-compare-card{padding:22px;background:var(--card);border:1px solid var(--line);border-radius:16px}.country-compare-card h3{font-size:20px;margin-bottom:8px}.country-compare-card p{color:var(--muted);font-size:14px}.country-table{display:grid;gap:7px;margin-top:18px}.country-row{display:grid;grid-template-columns:1fr 80px 110px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.country-row strong{text-align:right}.country-row-head{font-weight:700;color:var(--muted);border-bottom:2px solid var(--line)}.nearest-list{display:grid;gap:12px;margin:18px 0 0;padding-left:22px}.nearest-list li{display:flex;justify-content:space-between;gap:12px;padding-left:5px}.nearest-list strong{font-size:12px;color:var(--teal)}
-    @media(max-width:700px){.result-score{display:block;margin-top:8px}.country-results{grid-template-columns:1fr}.country-row{grid-template-columns:1fr 58px 78px;font-size:12px}}
+    .result-percentile{font:700 21px "Libre Baskerville",Georgia,serif;color:var(--teal-dark);white-space:nowrap}.result-z{margin:0 0 12px;color:var(--muted);font-size:13px}.country-comparison{padding:52px 0 74px;border-top:1px solid var(--line)}.country-comparison h2{font-size:clamp(30px,4vw,48px);margin-bottom:14px}.country-intro{color:var(--muted);max-width:740px}.country-select-label{display:block;margin:24px 0 7px;font-size:13px;font-weight:700}.country-select{width:min(440px,100%);padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit}.country-results{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;margin-top:24px}.country-compare-card{padding:22px;background:var(--card);border:1px solid var(--line);border-radius:16px}.country-compare-card h3{font-size:20px;margin-bottom:8px}.country-compare-card p{color:var(--muted);font-size:14px}.country-table{display:grid;gap:7px;margin-top:18px}.country-row{display:grid;grid-template-columns:1fr 80px 110px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.country-row strong{text-align:right}.country-row-head{font-weight:700;color:var(--muted);border-bottom:2px solid var(--line)}.nearest-list{display:grid;gap:12px;margin:18px 0 0;padding-left:22px}.nearest-list li{display:flex;justify-content:space-between;gap:12px;padding-left:5px}.nearest-list strong{font-size:12px;color:var(--teal)}
+    @media(max-width:700px){.result-percentile{display:block;margin-top:8px}.country-results{grid-template-columns:1fr}.country-row{grid-template-columns:1fr 58px 78px;font-size:12px}}
   </style>
 </head>
 <body class="assessment-shell result-shell">
@@ -32,36 +32,39 @@
       <div class="result-section-heading">
         <p class="assessment-eyebrow">5 CHIỀU</p>
         <h2>Nhìn vị trí của mình giữa hai xu hướng.</h2>
-        <p>Thang 0–100 phản ánh xu hướng câu trả lời giữa hai phía. Đây không phải percentile so với dân số hay điểm chuẩn quốc gia; không có mức nào tự động tốt hay xấu.</p>
+        <p>Điểm phần trăm là vị trí tham chiếu theo bảng quy đổi trong workbook; không có mức nào tự động tốt hay xấu.</p>
       </div>
       <div class="result-chart" id="result-chart"></div>
     </section>
     <section class="country-comparison" aria-labelledby="country-heading">
-      <p class="assessment-eyebrow">CHUẨN BỊ CHO BUỔI TƯ VẤN</p>
-      <h2 id="country-heading">Đặt kết quả vào bối cảnh quốc gia con dự định đến.</h2>
-      <p class="country-intro">Bản đồ này cho thấy 5 xu hướng của học sinh. Hiện chưa có bộ dữ liệu tham chiếu quốc gia được kiểm chứng để chấm mức độ tương đồng, nên kết quả không tự kết luận con phù hợp hay không phù hợp với một nước. Trong buổi tư vấn 60 phút, Linh sẽ cùng gia đình đối chiếu kết quả với quốc gia, trường và ngành đang cân nhắc.</p>
-      <p class="assessment-small">Không dùng kết quả này để xếp hạng quốc gia hoặc dự đoán khả năng nhận học bổng.</p>
+      <p class="assessment-eyebrow">SO SÁNH THAM CHIẾU</p>
+      <h2 id="country-heading">Bạn muốn đối chiếu với nước nào?</h2>
+      <p class="country-intro">Chọn một nước để xem 5 trục đặt cạnh hồ sơ tham chiếu. Kết quả cũng hiển thị ba nước có hồ sơ gần nhất với bạn, kèm cờ và tên Việt–Anh.</p>
+      <label class="country-select-label" for="country-select">Nước tham chiếu</label>
+      <select id="country-select" class="country-select" disabled><option>Đang tải dữ liệu…</option></select>
+      <p class="assessment-small" id="country-status" role="status"></p>
+      <div id="country-results" class="country-results"></div>
       <section id="previous-result" hidden style="margin-top:28px"><h2>Lần gần nhất để bạn đối chiếu</h2><p class="country-intro">Phần này chỉ xuất hiện khi lượt truy cập mới được cấp quyền xem kết quả trước đó.</p><div id="previous-chart" class="result-chart"></div></section>
     </section>
     <section class="result-next-step">
       <div>
         <p class="assessment-eyebrow">BƯỚC TIẾP THEO</p>
         <h2>Mang bản đồ này vào một cuộc trò chuyện thật.</h2>
-        <p>Hãy hoàn thành bài kiểm chứng trước khi gửi yêu cầu đặt lịch. Lưu bản đồ kết quả và mở lại trong buổi tư vấn 60 phút để cùng Linh phân tích. Linh sẽ phản hồi qua email để xác nhận khung giờ.</p>
+        <p>Con có thể chọn một chiều khiến mình tò mò nhất, kể cho ba mẹ điều mình nhận ra và chọn một việc nhỏ để thử trong bảy ngày.</p>
       </div>
       <div class="result-actions">
-        <a class="assessment-button" href="mailto:Linhcoach.EQstrength@gmail.com?subject=Đ%E1%BA%B7t%20l%E1%BB%8Bch%20t%C6%B0%20v%E1%BA%A5n%2060%20ph%C3%BAt&amp;body=Ch%C3%A0o%20Linh%2C%0D%0A%0D%0AEm%20%C4%91%C3%A3%20ho%C3%A0n%20th%C3%A0nh%20b%C3%A0i%20ki%E1%BB%83m%20ch%E1%BB%A9ng%20h%C6%B0%E1%BB%9Bng%20%C4%91i%20v%C3%A0%20mu%E1%BB%91n%20%C4%91%E1%BA%B7t%20l%E1%BB%8Bch%20t%C6%B0%20v%E1%BA%A5n%2060%20ph%C3%BAt.%0D%0A%0D%0AH%E1%BB%8D%20t%C3%AAn%20h%E1%BB%8Dc%20sinh%3A%0D%0AKhung%20gi%E1%BB%9D%20mong%20mu%E1%BB%91n%3A">Gửi yêu cầu đặt lịch 60 phút <span aria-hidden="true">→</span></a>
+        <a class="assessment-button" href="https://linhcoach.nghetrienkhaiai.com/book/coaching">Đặt lịch cùng Linh <span aria-hidden="true">→</span></a>
         <a class="result-secondary-link" href="/">Quay lại trang thông tin</a>
       </div>
     </section>
   </main>
   <div class="result-error" id="result-error" hidden>
-    <h1>Chưa mở được kết quả.</h1>
-    <p id="result-error-message">Mở bài test hoặc liên hệ Linh để được hỗ trợ.</p>
-    <a class="assessment-button" href="/test">Mở bài test <span aria-hidden="true">→</span></a>
-    <p><a class="result-secondary-link" href="mailto:Linhcoach.EQstrength@gmail.com?subject=H%E1%BB%97%20tr%E1%BB%A3%20m%E1%BB%9F%20k%E1%BA%BFt%20qu%E1%BA%A3">Liên hệ Linh qua email</a></p>
-    <p><a class="result-secondary-link" href="/">Về trang thông tin</a></p>
+    <h1>Đường dẫn kết quả không còn dùng được.</h1>
+    <p>Vui lòng mở lại đường dẫn trong email/tin nhắn đã nhận hoặc liên hệ Linh để được hỗ trợ.</p>
+    <a class="assessment-button" href="/">Về trang thông tin <span aria-hidden="true">→</span></a>
   </div>
   <script src="/result.js" type="module"></script>
+  <script src="/embed-height.js" defer></script>
 </body>
 </html>
+
