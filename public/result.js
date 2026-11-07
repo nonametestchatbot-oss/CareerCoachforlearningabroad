@@ -9,6 +9,7 @@ const chart = document.getElementById('result-chart');
 const app = document.getElementById('result-app');
 const errorView = document.getElementById('result-error');
 const expiry = document.getElementById('result-expiry');
+const profileTypeBadge = document.getElementById('result-profile-type');
 const countrySelect = document.getElementById('country-select');
 const countryStatus = document.getElementById('country-status');
 const countryResults = document.getElementById('country-results');
@@ -87,6 +88,7 @@ async function loadResult() {
   if (!response.ok || !data.ok) throw new Error(data.error || 'Result unavailable');
   userResults = data.results;
   expiry.textContent = `Đường dẫn kết quả có hiệu lực đến ${formatExpiry(data.expiresAt)}.`;
+  if (data.profileType && profileTypeBadge) { profileTypeBadge.hidden = false; profileTypeBadge.textContent = data.profileType === 'student' ? 'Nhóm: học sinh / sinh viên' : 'Nhóm: người đi làm'; }
   chart.innerHTML = userResults.map(renderCard).join('');
   renderCountryOptions();
   if (data.previousResults?.length && previousResult && previousChart) {

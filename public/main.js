@@ -16,10 +16,21 @@ let paymentTimer;
 
 // Keep the checkout form compatible with older cached HTML while collecting the
 // email needed to unlock the private assessment after payment.
+if (!document.getElementById('student-name')) {
+  const nameLabel = document.createElement('label');
+  nameLabel.htmlFor = 'student-name';
+  nameLabel.textContent = 'Họ và tên học sinh *';
+  const nameInput = document.createElement('input');
+  nameInput.id = 'student-name'; nameInput.name = 'studentName'; nameInput.required = true;
+  nameInput.maxLength = 120; nameInput.placeholder = 'Tên học sinh sẽ làm bài kiểm chứng';
+  const studentLabel = document.getElementById('student')?.previousElementSibling;
+  (studentLabel || form.querySelector('button[type="submit"]')).before(nameLabel, nameInput);
+}
+
 if (!document.getElementById('email')) {
   const emailLabel = document.createElement('label');
   emailLabel.htmlFor = 'email';
-  emailLabel.textContent = 'Email nhận mã bài test *';
+  emailLabel.textContent = 'Email dùng để xác thực bài test *';
   const emailInput = document.createElement('input');
   emailInput.id = 'email';
   emailInput.name = 'email';
@@ -27,7 +38,7 @@ if (!document.getElementById('email')) {
   emailInput.autocomplete = 'email';
   emailInput.required = true;
   emailInput.maxLength = 160;
-  emailInput.placeholder = 'Ba mẹ sẽ dùng email này để mở bài test';
+  emailInput.placeholder = 'Email ba/mẹ hoặc học sinh sẽ dùng để xác thực bài test';
   const studentLabel = document.getElementById('student')?.previousElementSibling;
   (studentLabel || form.querySelector('button[type="submit"]')).before(emailLabel, emailInput);
 }
