@@ -14,7 +14,7 @@ export default async function handler(req, res) {
       const user = await ensureAssessmentUser(authUser);
       const grant = await grantForUser(user.id, false);
       if (!grant) throw new Error('Assessment access is unavailable');
-      const inserted = await supabaseRpc('submit_assessment', { p_auth_user_id: authUser.id, p_grant_id: grant.id, p_answers: body.answers, p_results: results });
+      const inserted = await supabaseRpc('submit_assessment', { p_auth_user_id: authUser.id, p_grant_id: grant.id, p_answers: { ...body.answers, _profileType: ['student','professional'].includes(body.profileType) ? body.profileType : 'student' }, p_results: results });
       const attempt = Array.isArray(inserted) ? inserted[0] : inserted;
       if (!attempt?.id) throw new Error('Assessment result was not saved');
       return res.status(200).json({ ok: true, attemptId: attempt.id, expiresAt: Math.floor(new Date(attempt.expires_at).getTime() / 1000), results });
