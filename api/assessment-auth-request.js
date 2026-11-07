@@ -26,7 +26,7 @@ export default async function handler(req, res) {
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
     const email = normalizeEmail(body.email); const code = String(body.code || '').trim().toUpperCase();
-    if (!/^\\S+@\\S+\\.\\S+$/.test(email)) return res.status(400).json({ ok: false, error: 'Vui lòng nhập email hợp lệ.' });
+    if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ ok: false, error: 'Vui lòng nhập email hợp lệ.' });
     if (code && !validateOrderCode(code)) return res.status(400).json({ ok: false, error: 'Mã đăng ký không hợp lệ.' });
     if (code) {
       const payment = await readPaymentStatus(code);
