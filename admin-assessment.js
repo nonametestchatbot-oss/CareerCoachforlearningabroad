@@ -10,10 +10,35 @@ async function call(path,options={}) {
  const response=await fetch(path,{...options,headers:{'Content-Type':'application/json',Authorization:`Bearer ${authToken}`,...(options.headers||{})}});
  const data=await response.json(); if(!response.ok||!data.ok)throw new Error(data.error||'Không thực hiện được'); return data;
 }
+let otpCooldownTimer;
+function startOtpCooldown(seconds) {
+ const button=$('login-form').querySelector('button[type="submit"]');
+ if(!button)return;
+ clearInterval(otpCooldownTimer);
+ const original=button.dataset.originalLabel||button.textContent.trim();
+ button.dataset.originalLabel=original;
+ let remaining=Math.max(0,Number(seconds)||60);
+ button.disabled=remaining>0;
+ const tick=()=>{
+  if(remaining<=0){clearInterval(otpCooldownTimer);button.disabled=false;button.textContent=original;return;}
+  button.textContent=`Gửi lại sau ${remaining} giây`;
+  remaining-=1;
+ };
+ tick();
+ otpCooldownTimer=setInterval(tick,1000);
+}
 async function requestOtp(event) {
  event.preventDefault(); email=$('admin-email').value.trim().toLowerCase();
- try {const data=await fetch('/api/assessment-auth-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})}).then(r=>r.json());if(!data.ok)throw new Error(data.error);$('verify-form').hidden=false;status('login-status','Đã gửi mã. Kiểm tra email quản trị.');}
- catch(error){status('login-status',error.message,true);}
+ try {
+  const response=await fetch('/api/assessment-auth-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+  let data={}; try { data=await response.json(); } catch {}
+  if(!response.ok||!data.ok) {
+   if(response.status===429){$('verify-form').hidden=false;startOtpCooldown(data.retryAfterSeconds||60);}
+   throw new Error(data.error||'Chưa gửi được mã xác thực lúc này. Vui lòng thử lại sau ít phút.');
+  }
+  $('verify-form').hidden=false;startOtpCooldown(60);
+  status('login-status','Đã gửi mã. Kiểm tra email rồi nhập mã bên dưới.');
+ } catch(error){status('login-status',error.message||'Chưa gửi được mã xác thực lúc này. Vui lòng thử lại sau ít phút.',true);}
 }
 async function verifyOtp(event) {
  event.preventDefault();
