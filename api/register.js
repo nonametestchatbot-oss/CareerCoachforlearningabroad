@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { upsertLead } from '../lib/crm.js';
+import { normalizeEmail, supabaseTable } from '../lib/supabase.js';
 
 const PAYMENT_AMOUNT = 1000000;
 const BANK_CODE = 'OCB';
@@ -9,7 +10,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
 
   const body = typeof req.body === 'string' ? Object.fromEntries(new URLSearchParams(req.body)) : (req.body || {});
-  const required = ['name', 'contact', 'email', 'student', 'concern'];
+  const required = ['name', 'contact', 'email', 'studentName', 'student', 'concern'];
   if (required.some(key => !String(body[key] || '').trim())) {
     return res.status(400).json({ ok: false, error: 'Missing required fields' });
   }
@@ -29,6 +30,7 @@ export default async function handler(req, res) {
     name: String(body.name).trim(),
     contact: String(body.contact).trim(),
     email: String(body.email).trim().toLowerCase(),
+    studentName: String(body.studentName).trim(),
     student: String(body.student).trim(),
     concern: String(body.concern).trim()
   });
@@ -41,6 +43,19 @@ export default async function handler(req, res) {
     });
     const result = await upstream.json();
     if (!upstream.ok || !result.ok) throw new Error(result.error || 'Could not save registration');
+
+    // Best-effort record for matching the paid email to the student taking the assessment.
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY && (process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
+      try {
+        const email = normalizeEmail(body.email);
+        const existing = await supabaseTable(`assessment_users?select=id&email=eq.${encodeURIComponent(email)}&limit=1`);
+        const payload = { email, name: String(body.studentName).trim().slice(0, 100), phone: String(body.contact).trim().slice(0, 30), updated_at: new Date().toISOString() };
+        if (existing?.[0]?.id) await supabaseTable(`assessment_users?id=eq.${encodeURIComponent(existing[0].id)}`, { method: 'PATCH', body: JSON.stringify(payload) });
+        else await supabaseTable('assessment_users', { method: 'POST', body: JSON.stringify(payload) });
+      } catch (assessmentError) {
+        console.error('Assessment applicant upsert failed:', assessmentError.message);
+      }
+    }
 
     // Best-effort CRM upsert: a temporary CRM outage must not interrupt payment.
     if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
