@@ -8,6 +8,17 @@ let paymentTimer;
 
 // Keep the checkout form compatible with older cached HTML while collecting the
 // email needed to unlock the private assessment after payment.
+if (!document.getElementById('student-name')) {
+  const nameLabel = document.createElement('label');
+  nameLabel.htmlFor = 'student-name';
+  nameLabel.textContent = 'Tên học sinh/người làm test *';
+  const nameInput = document.createElement('input');
+  nameInput.id = 'student-name'; nameInput.name = 'studentName'; nameInput.autocomplete = 'given-name';
+  nameInput.required = true; nameInput.maxLength = 100; nameInput.placeholder = 'Tên người sẽ làm bài test';
+  const studentLabel = document.getElementById('student')?.previousElementSibling;
+  (studentLabel || form.querySelector('button[type="submit"]')).before(nameLabel, nameInput);
+}
+
 if (!document.getElementById('email')) {
   const emailLabel = document.createElement('label');
   emailLabel.htmlFor = 'email';
@@ -78,6 +89,7 @@ form.addEventListener('submit', async event => {
     name: String(data.get('name') || ''),
     contact: String(data.get('phone') || ''),
     email: String(data.get('email') || ''),
+    studentName: String(data.get('studentName') || ''),
     student: String(data.get('student') || ''),
     concern: String(data.get('concern') || ''),
     source: new URLSearchParams(window.location.search).get('utm_source') || document.referrer || 'landing-page',
