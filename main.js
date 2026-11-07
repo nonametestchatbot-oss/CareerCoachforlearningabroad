@@ -22,7 +22,7 @@ if (!document.getElementById('student-name')) {
 if (!document.getElementById('email')) {
   const emailLabel = document.createElement('label');
   emailLabel.htmlFor = 'email';
-  emailLabel.textContent = 'Email nhận mã bài test *';
+  emailLabel.textContent = 'Email dùng để xác thực bài test *';
   const emailInput = document.createElement('input');
   emailInput.id = 'email';
   emailInput.name = 'email';
@@ -30,7 +30,7 @@ if (!document.getElementById('email')) {
   emailInput.autocomplete = 'email';
   emailInput.required = true;
   emailInput.maxLength = 160;
-  emailInput.placeholder = 'Ba mẹ sẽ dùng email này để mở bài test';
+  emailInput.placeholder = 'Email ba/mẹ hoặc học sinh sẽ dùng để xác thực bài test';
   const studentLabel = document.getElementById('student')?.previousElementSibling;
   (studentLabel || form.querySelector('button[type="submit"]')).before(emailLabel, emailInput);
 }
