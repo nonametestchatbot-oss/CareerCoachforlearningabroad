@@ -2,6 +2,25 @@ import { readPaymentStatus, validateOrderCode } from '../lib/payment.js';
 import { findUserByEmail, grantForUser } from '../lib/assessment-access.js';
 import { adminEmails, normalizeEmail, supabaseAuthOtp } from '../lib/supabase.js';
 
+function providerError(error) {
+  const raw = String(error?.message || '');
+  let detail;
+  try { detail = JSON.parse(raw); } catch {}
+  const message = String(detail?.msg || detail?.message || raw);
+  const isRateLimited = Number(detail?.code) === 429
+    || detail?.error_code === 'over_email_send_rate_limit'
+    || /over_email_send_rate_limit/i.test(message);
+  if (isRateLimited) {
+    const seconds = Number(message.match(/after\s+(\d+)\s+seconds?/i)?.[1] || 60);
+    return {
+      status: 429,
+      retryAfterSeconds: seconds,
+      error: `Bạn vừa yêu cầu mã xác thực. Hãy chờ ${seconds} giây rồi thử lại. Nếu đã nhận mã, hãy nhập mã đó bên dưới.`
+    };
+  }
+  return { status: 502, error: 'Chưa gửi được mã xác thực lúc này. Vui lòng thử lại sau ít phút.' };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
   try {
@@ -18,5 +37,9 @@ export default async function handler(req, res) {
     }
     await supabaseAuthOtp(email);
     return res.status(200).json({ ok: true, message: 'Mã xác thực đã được gửi đến email.' });
-  } catch (error) { return res.status(502).json({ ok: false, error: error.message || 'Chưa gửi được mã xác thực.' }); }
+  } catch (error) {
+    const failure = providerError(error);
+    if (failure.retryAfterSeconds) res.setHeader('Retry-After', String(failure.retryAfterSeconds));
+    return res.status(failure.status).json({ ok: false, error: failure.error, ...(failure.retryAfterSeconds ? { retryAfterSeconds: failure.retryAfterSeconds } : {}) });
+  }
 }
