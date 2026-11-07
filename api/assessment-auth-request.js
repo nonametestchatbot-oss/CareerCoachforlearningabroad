@@ -15,7 +15,7 @@ function providerError(error) {
     return {
       status: 429,
       retryAfterSeconds: seconds,
-      error: `Bạn vừa yêu cầu mã xác thực. Hãy chờ ${seconds} giây rồi thử lại. Nếu đã nhận mã, hãy nhập mã đó bên dưới.`
+      error: `Bạn vừa yêu cầu mã xác thực. Hãy chờ ${seconds} giây rồi thử lại. Nếu đã nhận email, hãy mở liên kết đăng nhập trong đó.`
     };
   }
   return { status: 502, error: 'Chưa gửi được mã xác thực lúc này. Vui lòng thử lại sau ít phút.' };
@@ -28,15 +28,16 @@ export default async function handler(req, res) {
     const email = normalizeEmail(body.email); const code = String(body.code || '').trim().toUpperCase();
     if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ ok: false, error: 'Vui lòng nhập email hợp lệ.' });
     if (code && !validateOrderCode(code)) return res.status(400).json({ ok: false, error: 'Mã đăng ký không hợp lệ.' });
+    const isAdmin = adminEmails().includes(email);
     if (code) {
       const payment = await readPaymentStatus(code);
       if (payment.status !== 'Paid') return res.status(402).json({ ok: false, error: 'Khoản thanh toán của mã này chưa được SePay xác nhận.' });
-    } else if (!adminEmails().includes(email)) {
+    } else if (!isAdmin) {
       const user = await findUserByEmail(email);
       if (!user || !(await grantForUser(user.id, false))) return res.status(403).json({ ok: false, error: 'Email này chưa được cấp quyền làm bài. Nếu bạn đã thanh toán, hãy dùng mã đăng ký trên trang thanh toán.' });
     }
-    await supabaseAuthOtp(email);
-    return res.status(200).json({ ok: true, message: 'Mã xác thực đã được gửi đến email.' });
+    await supabaseAuthOtp(email, isAdmin ? 'admin' : 'assessment');
+    return res.status(200).json({ ok: true, message: 'Email đăng nhập đã được gửi.' });
   } catch (error) {
     const failure = providerError(error);
     if (failure.retryAfterSeconds) res.setHeader('Retry-After', String(failure.retryAfterSeconds));

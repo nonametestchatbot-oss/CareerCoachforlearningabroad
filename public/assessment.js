@@ -31,6 +31,14 @@ let pageIndex = 0;
 let profileType = '';
 const choices = [['1','Hoàn toàn không giống tôi'],['2','Khá không giống tôi'],['3','Hơi không giống tôi'],['4','Ở giữa / tùy hoàn cảnh'],['5','Hơi giống tôi'],['6','Khá giống tôi'],['7','Rất giống tôi']];
 const queryCode = new URLSearchParams(window.location.search).get('code');
+const magicLinkParams = new URLSearchParams(window.location.hash.slice(1));
+const magicLinkToken = magicLinkParams.get('access_token');
+const magicLinkError = magicLinkParams.get('error_description') || magicLinkParams.get('error');
+if (magicLinkToken) {
+  accessToken = magicLinkToken;
+  sessionStorage.setItem('linhCoachAssessmentAuth', accessToken);
+  window.history.replaceState(null, '', window.location.pathname + window.location.search);
+}
 if (queryCode) codeInput.value = queryCode.toUpperCase();
 function setStatus(element, message, isError = false) { element.textContent = message; element.classList.toggle('error', isError); }
 function authHeaders() { return accessToken ? { Authorization: `Bearer ${accessToken}` } : {}; }
@@ -85,20 +93,41 @@ function renderQuestions() {
     setStatus(quizStatus, '');
   }));
 }
+let accessOtpCooldown;
+function startAccessOtpCooldown(seconds) {
+  const button = emailForm.querySelector('button');
+  clearInterval(accessOtpCooldown);
+  let remaining = Math.max(0, Number(seconds) || 60);
+  const original = button.dataset.originalLabel || button.textContent.trim();
+  button.dataset.originalLabel = original;
+  button.disabled = remaining > 0;
+  const tick = () => {
+    if (remaining <= 0) { clearInterval(accessOtpCooldown); button.disabled = false; button.textContent = original; return; }
+    button.textContent = `Gửi lại sau ${remaining} giây`;
+    remaining -= 1;
+  };
+  tick();
+  accessOtpCooldown = setInterval(tick, 1000);
+}
 async function requestOtp(event) {
   event.preventDefault();
   pendingEmail = emailInput.value.trim().toLowerCase();
   pendingCode = codeInput.value.trim().toUpperCase();
   const button = emailForm.querySelector('button');
   button.disabled = true;
+  let cooldown = false;
   try {
     const response = await fetch('/api/assessment-auth-request', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:pendingEmail,code:pendingCode})});
-    const data = await response.json();
-    if (!response.ok || !data.ok) throw new Error(data.error);
-    emailStep.hidden = true; otpStep.hidden = false; emailLabel.textContent = pendingEmail; otpInput.focus();
-    setStatus(accessStatus, 'Mã xác thực đã được gửi.');
-  } catch(error) { setStatus(accessStatus,error.message || 'Chưa gửi được mã xác thực.',true); }
-  finally { button.disabled = false; }
+    let data = {}; try { data = await response.json(); } catch {}
+    if (!response.ok || !data.ok) {
+      if (response.status === 429) { startAccessOtpCooldown(data.retryAfterSeconds || 60); cooldown = true; }
+      throw new Error(data.error || 'Chưa gửi được email đăng nhập. Hãy thử lại sau ít phút.');
+    }
+    emailStep.hidden = false; otpStep.hidden = true;
+    startAccessOtpCooldown(60); cooldown = true;
+    setStatus(accessStatus, 'Đã gửi liên kết đăng nhập. Mở email trên thiết bị này để tiếp tục bài test.');
+  } catch(error) { setStatus(accessStatus,error.message || 'Chưa gửi được email đăng nhập.',true); }
+  finally { if (!cooldown) button.disabled = false; }
 }
 async function verifyOtp(event) {
   event.preventDefault();
@@ -137,7 +166,7 @@ async function restoreSession() {
     }
     setStatus(accessStatus,`Đã xác nhận quyền. Lượt làm bài có hiệu lực đến ${new Date(grant.expiresAt).toLocaleDateString('vi-VN')}.`);
     showProfileStep();
-  } catch { sessionStorage.removeItem('linhCoachAssessmentAuth'); accessToken = ''; }
+  } catch { sessionStorage.removeItem('linhCoachAssessmentAuth'); accessToken = ''; if (magicLinkError) setStatus(accessStatus,'Liên kết đăng nhập không còn hiệu lực. Hãy yêu cầu email mới.',true); }
 }
 profileForm.addEventListener('submit', event => {
   event.preventDefault();
