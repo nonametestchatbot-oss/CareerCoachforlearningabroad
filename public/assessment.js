@@ -115,18 +115,19 @@ async function requestOtp(event) {
   pendingCode = codeInput.value.trim().toUpperCase();
   const button = emailForm.querySelector('button');
   button.disabled = true;
+  let cooldown = false;
   try {
     const response = await fetch('/api/assessment-auth-request', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:pendingEmail,code:pendingCode})});
     let data = {}; try { data = await response.json(); } catch {}
     if (!response.ok || !data.ok) {
-      if (response.status === 429) startAccessOtpCooldown(data.retryAfterSeconds || 60);
+      if (response.status === 429) { startAccessOtpCooldown(data.retryAfterSeconds || 60); cooldown = true; }
       throw new Error(data.error || 'Chưa gửi được email đăng nhập. Hãy thử lại sau ít phút.');
     }
     emailStep.hidden = false; otpStep.hidden = true;
-    startAccessOtpCooldown(60);
+    startAccessOtpCooldown(60); cooldown = true;
     setStatus(accessStatus, 'Đã gửi liên kết đăng nhập. Mở email trên thiết bị này để tiếp tục bài test.');
   } catch(error) { setStatus(accessStatus,error.message || 'Chưa gửi được email đăng nhập.',true); }
-  finally { if (!button.disabled) button.disabled = false; }
+  finally { if (!cooldown) button.disabled = false; }
 }
 async function verifyOtp(event) {
   event.preventDefault();
