@@ -29,7 +29,7 @@ function attemptHtml(attempt) {
  const user=related(attempt.assessment_users), grant=related(attempt.assessment_access_grants), answers=attempt.answers||{};
  const profile=answers._profileType==='student'?'Học sinh / sinh viên':answers._profileType==='professional'?'Người đi làm':'Chưa lưu nhóm';
  const results=attempt.results||{};
- const resultItems=Object.entries(results).map(([key,value])=>`<span><strong>${esc(key)}:</strong> ${esc(value?.position??'—')}/100</span>`).join('');
+ const resultItems=Object.values(results).map((value,index)=>`<span><strong>${esc(value?.key||index+1)}:</strong> ${esc(value?.position??'—')}/100</span>`).join('');
  const raw=Object.entries(answers).filter(([key])=>!key.startsWith('_')).sort(([a],[b])=>a.localeCompare(b,undefined,{numeric:true})).map(([key,value])=>`<span><strong>${esc(key)}:</strong> ${esc(value)}</span>`).join('');
  const source=grant.source==='sepay'?'Tự động · thanh toán':'Linh cấp thủ công';
  return `<tr><td><strong>${esc(user.name||'Chưa có tên')}</strong><br>${esc(user.email||'')}</td><td>${esc(profile)}<br><span class="source-tag">${source}</span><br>${esc(grant.order_code||'')}</td><td>${esc(date(attempt.submitted_at))}</td><td><div class="attempt-result">${resultItems||'Chưa có điểm'}</div></td><td><details><summary>Chi tiết câu trả lời</summary><div class="answer-list">${raw||'Không có dữ liệu câu trả lời.'}</div></details></td></tr>`;
