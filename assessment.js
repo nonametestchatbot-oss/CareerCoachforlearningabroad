@@ -59,7 +59,7 @@ function renderQuestions() {
   const start = pageIndex * batchSize;
   const pageQuestions = QUESTIONS.slice(start, start + batchSize);
   const end = start + pageQuestions.length;
-  const percent = Math.round((start / QUESTIONS.length) * 100);
+  const percent = Math.round((Object.keys(answers).length / QUESTIONS.length) * 100);
   progressLabel.textContent = `Câu ${start + 1}–${end} / ${QUESTIONS.length}`;
   progressPercent.textContent = `${percent}%`;
   progressBar.style.width = `${Math.max(4, percent)}%`;
@@ -79,6 +79,9 @@ function renderQuestions() {
   questionList.querySelectorAll('input').forEach(input => input.addEventListener('change', () => {
     const id = input.name.replace('answer-', '');
     answers[id] = Number(input.value);
+    const percent = Math.round((Object.keys(answers).length / QUESTIONS.length) * 100);
+    progressPercent.textContent = `${percent}%`;
+    progressBar.style.width = `${Math.max(4, percent)}%`;
     setStatus(quizStatus, '');
   }));
 }
