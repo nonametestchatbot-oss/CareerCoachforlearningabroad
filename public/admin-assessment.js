@@ -33,12 +33,12 @@ async function requestOtp(event) {
   const response=await fetch('/api/assessment-auth-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
   let data={}; try { data=await response.json(); } catch {}
   if(!response.ok||!data.ok) {
-   if(response.status===429){$('verify-form').hidden=false;startOtpCooldown(data.retryAfterSeconds||60);}
-   throw new Error(data.error||'Chưa gửi được mã xác thực lúc này. Vui lòng thử lại sau ít phút.');
+   if(response.status===429)startOtpCooldown(data.retryAfterSeconds||60);
+   throw new Error(data.error||'Chưa gửi được email đăng nhập. Vui lòng thử lại sau ít phút.');
   }
-  $('verify-form').hidden=false;startOtpCooldown(60);
-  status('login-status','Đã gửi mã. Kiểm tra email rồi nhập mã bên dưới.');
- } catch(error){status('login-status',error.message||'Chưa gửi được mã xác thực lúc này. Vui lòng thử lại sau ít phút.',true);}
+  $('verify-form').hidden=true;startOtpCooldown(60);
+  status('login-status','Email đăng nhập đã được gửi. Mở liên kết trong email này trên trình duyệt để vào quản trị.');
+ } catch(error){status('login-status',error.message||'Chưa gửi được email đăng nhập. Vui lòng thử lại sau ít phút.',true);}
 }
 async function verifyOtp(event) {
  event.preventDefault();
@@ -76,4 +76,14 @@ async function grant(event) {
  try {await call('/api/admin-assessment-grants',{method:'POST',body:JSON.stringify({email:$('grant-email').value,name:$('grant-name').value,notes:$('grant-notes').value,showPreviousResult:$('show-previous').checked})});status('grant-status','Đã cấp lượt làm bài trong 30 ngày.');event.target.reset();await loadDashboard();}
  catch(error){status('grant-status',error.message,true);}
 }
-$('login-form').addEventListener('submit',requestOtp);$('verify-form').addEventListener('submit',verifyOtp);$('grant-form').addEventListener('submit',grant);$('admin-search').addEventListener('input',renderDashboard);
+async function consumeMagicLink() {
+ const params=new URLSearchParams(window.location.hash.slice(1));
+ const token=params.get('access_token');
+ const error=params.get('error_description')||params.get('error');
+ if(!token){if(error)status('login-status','Liên kết đăng nhập không còn hiệu lực. Hãy yêu cầu email mới.',true);return;}
+ window.history.replaceState(null,'',window.location.pathname+window.location.search);
+ authToken=token;
+ try {await loadDashboard();$('login-card').hidden=true;$('panel').hidden=false;}
+ catch {authToken='';status('login-status','Không xác nhận được liên kết quản trị. Hãy yêu cầu email đăng nhập mới.',true);}
+}
+$('login-form').addEventListener('submit',requestOtp);consumeMagicLink();$('verify-form').addEventListener('submit',verifyOtp);$('grant-form').addEventListener('submit',grant);$('admin-search').addEventListener('input',renderDashboard);
