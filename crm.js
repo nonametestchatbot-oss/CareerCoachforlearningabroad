@@ -41,6 +41,11 @@ const nurtureSubject = document.getElementById('nurture-subject');
 const nurtureBody = document.getElementById('nurture-body');
 const nurtureCta = document.getElementById('nurture-cta');
 const nurtureStop = document.getElementById('nurture-stop');
+const nurtureDraftForm = document.getElementById('nurture-draft-form');
+const nurtureDraftStatus = document.getElementById('nurture-draft-status');
+const templateList = document.getElementById('template-list');
+const templateForm = document.getElementById('template-form');
+const templateStatus = document.getElementById('template-status');
 const statusLabels = {new:'Mới', contacted:'Đã liên hệ', qualified:'Đủ điều kiện', booked:'Đặt lịch', won:'Đã mua', not_fit:'Chưa phù hợp'};
 const statusKeys = Object.keys(statusLabels);
 const sessionKey = 'linhCoachCrmSession';
@@ -49,6 +54,9 @@ let leads = [];
 let editingLead = null;
 let selectedCustomerId = null;
 let selectedProfile = null;
+let selectedDraftId = null;
+let templates = [];
+let selectedTemplateKey = null;
 
 function escapeHtml(value) { return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
 function setStatus(element, message, error = false) { element.textContent = message; element.classList.toggle('error', error); }
@@ -64,7 +72,10 @@ async function api(path, options = {}) {
     '/api/crm-email-history': '/api/crm?action=email-history',
     '/api/crm-nurture-profile': '/api/crm?action=nurture-profile',
     '/api/crm-nurture-consent': '/api/crm?action=nurture-consent',
-    '/api/crm-nurture-queue': '/api/crm?action=nurture-queue'
+    '/api/crm-nurture-queue': '/api/crm?action=nurture-queue',
+    '/api/crm-nurture-draft': '/api/crm?action=nurture-draft',
+    '/api/crm-nurture-templates': '/api/crm?action=nurture-templates',
+    '/api/crm-nurture-template': '/api/crm?action=nurture-template'
   };
   if (routeMap[path]) path = routeMap[path];
   else if (path.startsWith('/api/crm-lead?')) path = path.replace('/api/crm-lead?', '/api/crm?action=lead&');
@@ -104,7 +115,14 @@ document.querySelectorAll('.view-tab').forEach(tab => tab.addEventListener('clic
   document.querySelectorAll('.view-tab').forEach(item => item.classList.toggle('is-active', item === tab));
   document.querySelectorAll('.crm-view').forEach(view => { view.hidden = view.id !== tab.dataset.view; });
   if (tab.dataset.view === 'customers-view') renderCustomers();
+  if (tab.dataset.view === 'email-drafts-view') loadNurtureTemplates();
 }));
+document.getElementById('reload-templates').addEventListener('click', loadNurtureTemplates);
+templateList.addEventListener('click', event => {
+  const button = event.target.closest('[data-template-key]');
+  if (button) selectNurtureTemplate(button.dataset.templateKey);
+});
+templateForm.addEventListener('submit', saveNurtureTemplate);
 [customerSearch, customerSourceFilter, customerStatusFilter, customerScoreFilter].forEach(element => element.addEventListener('input', renderCustomers));
 document.getElementById('customer-refresh-button').addEventListener('click', loadLeads);
 document.getElementById('close-profile').addEventListener('click', () => { customerProfile.hidden = true; selectedCustomerId = null; selectedProfile = null; });
@@ -113,6 +131,56 @@ document.getElementById('mark-done-button').addEventListener('click', markTaskDo
 emailHistoryForm.addEventListener('submit', saveEmailHistory);
 nurturePreviewSelect.addEventListener('change', renderNurturePreview);
 nurtureQueueButton.addEventListener('click', queueNurture);
+nurtureDraftForm.addEventListener('submit', saveNurtureDraft);
+document.getElementById('nurture-draft-cancel').addEventListener('click', closeNurtureDraft);
+nurtureOutbox.addEventListener('click', event => {
+  const button = event.target.closest('[data-draft-id]');
+  if (button) editNurtureDraft(button.dataset.draftId);
+});
+
+function templateKey(template) { return `${template.sequence_key}:${template.step}`; }
+function renderTemplateList() {
+  templateList.innerHTML = templates.map(template => `<button class="template-row${selectedTemplateKey === templateKey(template) ? ' is-selected' : ''}" type="button" data-template-key="${escapeHtml(templateKey(template))}"><span><strong>${escapeHtml(template.sequence_label)} · Email ${template.step}</strong><small>${escapeHtml(template.subject)}</small></span><span>${template.customized ? 'Đã sửa' : 'Bản gốc'}</span></button>`).join('');
+}
+function selectNurtureTemplate(key) {
+  const template = templates.find(item => templateKey(item) === key);
+  if (!template) return;
+  selectedTemplateKey = key;
+  document.getElementById('template-title').textContent = `${template.sequence_label} · Email ${template.step}`;
+  document.getElementById('template-meta').textContent = `Ngày ${template.delay_days} · ${template.goal} Điều kiện: ${template.condition} ${template.stop}`;
+  templateForm.elements.subject.value = template.subject;
+  templateForm.elements.body.value = template.body;
+  templateForm.elements.cta.value = template.cta;
+  templateForm.hidden = false;
+  renderTemplateList();
+}
+async function loadNurtureTemplates() {
+  setStatus(templateStatus, 'Đang tải email nháp…');
+  try {
+    const result = await api('/api/crm-nurture-templates');
+    templates = result.templates || [];
+    renderTemplateList();
+    if (selectedTemplateKey && templates.some(item => templateKey(item) === selectedTemplateKey)) selectNurtureTemplate(selectedTemplateKey);
+    else if (templates.length) selectNurtureTemplate(templateKey(templates[0]));
+    setStatus(templateStatus, `${templates.length} email nháp · Chưa gửi email nào.`);
+  } catch (error) { setStatus(templateStatus, error.message, true); }
+}
+async function saveNurtureTemplate(event) {
+  event.preventDefault();
+  const template = templates.find(item => templateKey(item) === selectedTemplateKey);
+  if (!template) return;
+  const button = templateForm.querySelector('button[type="submit"]');
+  button.disabled = true;
+  setStatus(templateStatus, 'Đang lưu email nháp…');
+  try {
+    const values = new FormData(templateForm);
+    const result = await api('/api/crm-nurture-template', { method: 'PATCH', body: JSON.stringify({ sequenceKey: template.sequence_key, step: template.step, subject: values.get('subject'), body: values.get('body'), cta: values.get('cta') }) });
+    templates = templates.map(item => templateKey(item) === selectedTemplateKey ? result.template : item);
+    renderTemplateList();
+    setStatus(templateStatus, 'Đã lưu email nháp. Nội dung mới sẽ áp dụng cho outbox tạo sau này; email chưa được gửi.');
+  } catch (error) { setStatus(templateStatus, error.message, true); }
+  finally { button.disabled = false; }
+}
 
 function fillStatusOptions() {
   const current = leadForm.elements.status.value;
@@ -195,7 +263,42 @@ function renderNurture(nurture) {
   nurtureSummary.textContent = `${sequence.label}. ${nurture.outbox?.length || 0}/${sequence.messages.length} email trong outbox. ${blocked ? `Chưa thể tạo: ${blocked}` : 'Không có email nào được gửi tự động.'}`;
   nurtureQueueButton.disabled = Boolean(blocked) || ['stopped', 'sent'].includes(status);
   renderNurturePreview();
-  nurtureOutbox.innerHTML = nurture.outbox?.length ? nurture.outbox.map(item => `<article class="nurture-item"><div class="nurture-item-head"><strong>Email ${item.step}: ${escapeHtml(item.subject)}</strong><span class="nurture-item-status">${escapeHtml(nurtureStatusLabels[item.status] || item.status)}</span></div><small>Dự kiến: ${escapeHtml(formatDate(item.send_after))}</small></article>`).join('') : '<p class="empty-state">Chưa có email trong outbox. Bấm “Tạo outbox — không gửi” sau khi đã có consent.</p>';
+  nurtureOutbox.innerHTML = nurture.outbox?.length ? nurture.outbox.map(item => `<article class="nurture-item"><div class="nurture-item-head"><strong>Email ${item.step}: ${escapeHtml(item.subject)}</strong><span class="nurture-item-status">${escapeHtml(nurtureStatusLabels[item.status] || item.status)}</span></div><small>Dự kiến: ${escapeHtml(formatDate(item.send_after))}</small>${item.status === 'draft' ? `<button class="secondary-button" type="button" data-draft-id="${escapeHtml(item.id)}">Xem và sửa bản nháp</button>` : ''}</article>`).join('') : '<p class="empty-state">Chưa có email trong outbox. Bấm “Tạo outbox — không gửi” sau khi đã có consent.</p>';
+}
+function closeNurtureDraft() {
+  selectedDraftId = null;
+  nurtureDraftForm.reset();
+  nurtureDraftForm.hidden = true;
+  setStatus(nurtureDraftStatus, '');
+}
+function editNurtureDraft(id) {
+  const draft = selectedProfile?.nurture?.outbox?.find(item => item.id === id && item.status === 'draft');
+  if (!draft) return;
+  selectedDraftId = id;
+  document.getElementById('nurture-draft-title').textContent = `Chỉnh sửa email ${draft.step}`;
+  nurtureDraftForm.elements.subject.value = draft.subject;
+  nurtureDraftForm.elements.body.value = draft.body;
+  nurtureDraftForm.elements.cta.value = draft.cta;
+  nurtureDraftForm.hidden = false;
+  setStatus(nurtureDraftStatus, '');
+  nurtureDraftForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+async function saveNurtureDraft(event) {
+  event.preventDefault();
+  if (!selectedProfile?.lead || !selectedDraftId) return;
+  const button = nurtureDraftForm.querySelector('button[type="submit"]');
+  button.disabled = true;
+  setStatus(nurtureDraftStatus, 'Đang lưu bản nháp…');
+  try {
+    const data = new FormData(nurtureDraftForm);
+    const result = await api('/api/crm-nurture-draft', { method: 'PATCH', body: JSON.stringify({ leadId: selectedProfile.lead.id, draftId: selectedDraftId, subject: data.get('subject'), body: data.get('body'), cta: data.get('cta') }) });
+    const index = selectedProfile.nurture.outbox.findIndex(item => item.id === selectedDraftId);
+    if (index >= 0) selectedProfile.nurture.outbox[index] = result.draft;
+    closeNurtureDraft();
+    renderNurture(selectedProfile.nurture);
+    setStatus(profileStatus, 'Đã lưu email nháp. Email chưa được gửi.');
+  } catch (error) { setStatus(nurtureDraftStatus, error.message, true); }
+  finally { button.disabled = false; }
 }
 async function queueNurture() {
   if (!selectedProfile?.lead) return;
@@ -224,6 +327,7 @@ function fillProfileForm(lead) {
   profileScore(lead);
 }
 async function openCustomerProfile(id) {
+  closeNurtureDraft();
   selectedCustomerId = id;
   renderCustomers();
   customerProfile.hidden = false;

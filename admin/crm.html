@@ -38,6 +38,7 @@
       <nav class="view-tabs" aria-label="Khu vực CRM">
         <button class="view-tab is-active" data-view="pipeline-view" type="button">Pipeline</button>
         <button class="view-tab" data-view="customers-view" type="button">Khách hàng</button>
+        <button class="view-tab" data-view="email-drafts-view" type="button">Email nháp</button>
       </nav>
       <section class="crm-view" id="pipeline-view">
       <section class="toolbar" aria-label="Bộ lọc lead">
@@ -83,9 +84,27 @@
               <div class="profile-actions"><button class="secondary-button" id="mark-done-button" type="button">Đánh dấu việc đã làm</button><button class="primary-button" type="submit">Lưu thay đổi</button></div>
             </form>
             <section class="profile-section nurture-section"><div class="section-heading"><div><h3>Email nuôi dưỡng</h3><p class="muted">Chỉ tạo bản nháp trong outbox; chưa có nhà cung cấp email nên hệ thống không tự gửi.</p></div><span class="nurture-badge" id="nurture-status">Chưa bắt đầu</span></div><p id="nurture-summary" class="nurture-summary"></p><div class="nurture-controls"><label>Email xem trước<select id="nurture-preview-select"></select></label><button class="secondary-button" id="nurture-queue-button" type="button">Tạo outbox — không gửi</button></div><article id="nurture-preview" class="nurture-preview"><p><b>Mục tiêu:</b> <span id="nurture-goal"></span></p><p><b>Điều kiện gửi:</b> <span id="nurture-condition"></span></p><h4 id="nurture-subject"></h4><div id="nurture-body" class="nurture-body"></div><p><b>CTA duy nhất:</b> <span id="nurture-cta"></span></p><p><b>Dừng khi:</b> <span id="nurture-stop"></span></p></article><div id="nurture-outbox" class="nurture-outbox"></div></section>
+            <form id="nurture-draft-form" class="nurture-draft-form" hidden><h4 id="nurture-draft-title">Chỉnh sửa email nháp</h4><label>Tiêu đề<input name="subject" required maxlength="200"></label><label>Nội dung<textarea name="body" required rows="12" maxlength="12000"></textarea></label><label>CTA duy nhất<input name="cta" required maxlength="300"></label><p class="muted">Thay đổi chỉ áp dụng cho email này của khách hàng đang mở. Lưu bản nháp không gửi email.</p><p class="status-message" id="nurture-draft-status" role="status" aria-live="polite"></p><div class="draft-actions"><button class="secondary-button" id="nurture-draft-cancel" type="button">Hủy</button><button class="primary-button" type="submit">Lưu bản nháp</button></div></form>
             <section class="profile-section"><div class="section-heading"><div><h3>Lịch sử email đã ghi nhận</h3><p class="muted">Chỉ là lịch sử ghi nhận thủ công; hệ thống không tự xác nhận email đã gửi thành công.</p></div></div><form id="email-history-form" class="email-history-form"><input name="subject" required maxlength="200" placeholder="Tiêu đề email đã gửi"><input name="note" maxlength="500" placeholder="Ghi chú ngắn (tuỳ chọn)"><button class="secondary-button" type="submit">Ghi email</button></form><div id="email-history" class="timeline"></div></section>
             <section class="profile-section"><div class="section-heading"><h3>Lịch sử hoạt động</h3></div><div id="activity-history" class="timeline"></div></section>
           </aside>
+        </div>
+      </section>
+      <section class="crm-view" id="email-drafts-view" hidden>
+        <div class="drafts-panel">
+          <div class="section-heading"><div><h2>Email nháp</h2><p class="muted">Chỉnh sửa 8 email của ba chuỗi. Nội dung được lưu trên CRM và áp dụng khi tạo outbox mới. Việc lưu không gửi email.</p></div><button class="secondary-button" id="reload-templates" type="button">Làm mới</button></div>
+          <p class="status-message" id="template-status" role="status" aria-live="polite"></p>
+          <div class="template-layout">
+            <div id="template-list" class="template-list" aria-label="Danh sách email nháp"></div>
+            <form id="template-form" class="nurture-draft-form" hidden>
+              <h3 id="template-title"></h3>
+              <p class="muted" id="template-meta"></p>
+              <label>Tiêu đề<input name="subject" required maxlength="200"></label>
+              <label>Nội dung<textarea name="body" required rows="16" maxlength="12000"></textarea></label>
+              <label>CTA duy nhất<input name="cta" required maxlength="300"></label>
+              <button class="primary-button" type="submit">Lưu email nháp</button>
+            </form>
+          </div>
         </div>
       </section>
     </section>

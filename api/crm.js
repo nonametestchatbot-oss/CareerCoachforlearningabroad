@@ -1,6 +1,6 @@
 import { sendCrmOtp, verifyCrmOtp, requireCrmAdmin } from '../lib/crm-auth.js';
 import { listLeads, upsertLead, updateLead, addLeadActivity, getLeadProfile, addLeadEmailHistory } from '../lib/crm.js';
-import { getNurtureProfile, updateNurtureConsent, queueNurtureForLead } from '../lib/nurture.js';
+import { getNurtureProfile, updateNurtureConsent, queueNurtureForLead, updateNurtureDraft, getNurtureTemplates, saveNurtureTemplate } from '../lib/nurture.js';
 
 function bodyOf(req) {
   return typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
@@ -76,6 +76,19 @@ export default async function handler(req, res) {
       if (!profile) return res.status(404).json({ ok: false, error: 'Lead not found' });
       const result = await queueNurtureForLead(profile.lead);
       return res.status(200).json({ ok: true, ...result });
+    }
+    if (action === 'nurture-draft' && req.method === 'PATCH') {
+      const body = bodyOf(req);
+      const draft = await updateNurtureDraft(String(body.leadId || '').trim(), String(body.draftId || '').trim(), body);
+      return res.status(200).json({ ok: true, draft });
+    }
+    if (action === 'nurture-templates' && req.method === 'GET') {
+      return res.status(200).json({ ok: true, templates: await getNurtureTemplates() });
+    }
+    if (action === 'nurture-template' && req.method === 'PATCH') {
+      const body = bodyOf(req);
+      const template = await saveNurtureTemplate(String(body.sequenceKey || '').trim(), Number(body.step), body);
+      return res.status(200).json({ ok: true, template });
     }
     return res.status(404).json({ ok: false, error: 'CRM route not found' });
   } catch (error) {
