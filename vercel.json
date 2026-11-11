@@ -2,7 +2,8 @@
   "outputDirectory": ".",
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/admin/crm", "destination": "/admin/crm.html" },\n    { "source": "/qua-tang", "destination": "/qua-tang.html" }
+    { "source": "/admin/crm", "destination": "/admin/crm.html" },
+    { "source": "/qua-tang", "destination": "/qua-tang.html" }
   ],
   "headers": [
     {
