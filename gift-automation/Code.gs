@@ -4,7 +4,10 @@ const GIFT_SITE_URL = 'https://duhocbenvung.linhcoach-eqstrength.com';
 const GIFT_API_URL = GIFT_SITE_URL + '/api/gift-nurture';
 
 function doPost(e) {
-  const input = e && e.parameter ? e.parameter : {};
+  let input = e && e.parameter ? e.parameter : {};
+  if (e && e.postData && e.postData.contents) {
+    try { input = Object.assign({}, input, JSON.parse(e.postData.contents)); } catch (ignored) {}
+  }
   const props = PropertiesService.getScriptProperties();
   const secret = props.getProperty('GIFT_AUTOMATION_SECRET') || '';
   if (!secret || !constantTimeEqual_(input.secret || input['x-gift-secret'], secret)) return json_({ok:false,error:'Unauthorized'});
@@ -39,7 +42,7 @@ function installNurtureTrigger() {
 function sendDueGiftNurture() {
   const secret = PropertiesService.getScriptProperties().getProperty('GIFT_AUTOMATION_SECRET') || '';
   if (!secret) throw new Error('Cần đặt Script Property GIFT_AUTOMATION_SECRET trước.');
-  const response = UrlFetchApp.fetch(GIFT_API_URL,{method:'post',contentType:'application/json',headers:{'x-gift-secret':secret},payload:JSON.stringify({action:'claim'}),muteHttpExceptions:true});
+  const response = UrlFetchApp.fetch(GIFT_API_URL,{method:'post',contentType:'application/json',headers:{'x-gift-secret':secret},payload:JSON.stringify({action:'claim',secret:secret}),muteHttpExceptions:true});
   if (response.getResponseCode() < 200 || response.getResponseCode() >= 300) throw new Error('Không lấy được email đến hạn.');
   const data = JSON.parse(response.getContentText());
   if (!data.ok) throw new Error('API không xác nhận danh sách email.');
@@ -50,7 +53,7 @@ function sendDueGiftNurture() {
       MailApp.sendEmail({to:message.to,subject:message.subject,body:body + '\n\nMở tài liệu: ' + GIFT_FILE_URL + '\n\nNếu bạn muốn dừng nhận email tiếp theo, vui lòng liên hệ Linh tại Linhcoach.EQstrength@gmail.com.',name:'Linh Coach'});
       outcome = {action:'ack',id:message.id,outcome:'sent'};
     } catch (error) { outcome.error = String(error).slice(0,400); }
-    try { UrlFetchApp.fetch(GIFT_API_URL,{method:'post',contentType:'application/json',headers:{'x-gift-secret':secret},payload:JSON.stringify(outcome),muteHttpExceptions:true}); } catch (ignored) {}
+    try { UrlFetchApp.fetch(GIFT_API_URL,{method:'post',contentType:'application/json',headers:{'x-gift-secret':secret},payload:JSON.stringify(Object.assign({},outcome,{secret:secret})),muteHttpExceptions:true}); } catch (ignored) {}
   });
 }
 function constantTimeEqual_(a,b) {
