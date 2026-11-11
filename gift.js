@@ -19,11 +19,11 @@ form.addEventListener('submit', async event => {
   button.disabled = true;
   button.textContent = 'Đang cấp quyền xem tài liệu…';
   try {
-    const response = await fetch('/api/gift-submit', {
+    const response = await fetch('/api/consultation', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
-        name: data.get('name'), email: data.get('email'), phone: data.get('phone'), role: data.get('role'),
+        action: 'gift-submit', name: data.get('name'), email: data.get('email'), phone: data.get('phone'), role: data.get('role'),
         deliveryConsent: Boolean(data.get('deliveryConsent')), marketingConsent: Boolean(data.get('marketingConsent')),
         website: data.get('website'), source: 'gift-short-programs', landingPageUrl: location.href,
         referrer: document.referrer, utm: utmValues()
