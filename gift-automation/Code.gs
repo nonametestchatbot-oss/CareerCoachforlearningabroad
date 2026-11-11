@@ -1,7 +1,7 @@
 const GIFT_FILE_ID = '1BHEPGL6dJ8WY-knFEolGDMdYilW9iEKkdwRvQr9s8O0';
 const GIFT_FILE_URL = 'https://docs.google.com/spreadsheets/d/' + GIFT_FILE_ID + '/edit';
 const GIFT_SITE_URL = 'https://duhocbenvung.linhcoach-eqstrength.com';
-const GIFT_API_URL = GIFT_SITE_URL + '/api/gift-nurture';
+const GIFT_API_URL = GIFT_SITE_URL + '/api/crm?action=gift-nurture';
 
 function doPost(e) {
   let input = e && e.parameter ? e.parameter : {};
