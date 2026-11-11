@@ -24,7 +24,7 @@ function deliverGift_(input) {
     const viewers = file.getViewers().map(user => String(user.getEmail() || '').toLowerCase());
     if (viewers.indexOf(email) < 0) file.addViewer(email);
     const subject = 'Quà tặng của Linh Coach: Bảng chương trình quốc tế ngắn hạn';
-    const body = 'Chào ' + name + ',\n\nLinh Coach đã cấp quyền xem bảng chương trình quốc tế ngắn hạn có học bổng cho email này.\n\nMở tài liệu tại đây: ' + GIFT_FILE_URL + '\n\nNếu Google yêu cầu đăng nhập, hãy dùng đúng email đã đăng ký: ' + email + '. Tài liệu được chia sẻ ở chế độ chỉ xem.\n\nCác cơ hội trong bảng chỉ mang tính tham khảo. Hạn nộp, độ tuổi, chi phí và hỗ trợ có thể thay đổi; vui lòng xác minh với đơn vị tổ chức trước khi đăng ký.\n\nTrân trọng,\nLinh Coach\nLinhcoach.EQstrength@gmail.com';
+    const body = 'Chào ' + name + ',\n\nLinh Coach đã cấp quyền xem bảng chương trình quốc tế ngắn hạn có học bổng cho email này.\n\nMở tài liệu tại đây: ' + GIFT_FILE_URL + '\n\nNếu Google yêu cầu đăng nhập, hãy dùng đúng email đã đăng ký: ' + email + '. Tài liệu được chia sẻ ở chế độ chỉ xem.\n\nCác cơ hội trong bảng chỉ mang tính tham khảo. Hạn nộp, độ tuổi, chi phí và hỗ trợ có thể thay đổi; vui lòng xác minh với đơn vị tổ chức trước khi đăng ký.\n\nNếu bạn muốn dừng nhận email tiếp theo, vui lòng liên hệ Linh tại Linhcoach.EQstrength@gmail.com.\n\nTrân trọng,\nLinh Coach\nLinhcoach.EQstrength@gmail.com';
     MailApp.sendEmail({to:email,subject:subject,body:body,name:'Linh Coach'});
     properties.setProperty('gift_' + requestId, new Date().toISOString());
     return json_({ok:true,fileUrl:GIFT_FILE_URL});
@@ -47,7 +47,7 @@ function sendDueGiftNurture() {
     let outcome = {action:'ack',id:message.id,outcome:'failed',error:'Gmail chưa xác nhận gửi.'};
     try {
       const body = String(message.body || '').replaceAll('{{name}}',String(message.name || 'bạn'));
-      MailApp.sendEmail({to:message.to,subject:message.subject,body:body + '\n\nMở tài liệu: ' + GIFT_FILE_URL + '\n\nNếu bạn không muốn nhận thêm email, hãy trả lời email này với nội dung NGỪNG.',name:'Linh Coach'});
+      MailApp.sendEmail({to:message.to,subject:message.subject,body:body + '\n\nMở tài liệu: ' + GIFT_FILE_URL + '\n\nNếu bạn muốn dừng nhận email tiếp theo, vui lòng liên hệ Linh tại Linhcoach.EQstrength@gmail.com.',name:'Linh Coach'});
       outcome = {action:'ack',id:message.id,outcome:'sent'};
     } catch (error) { outcome.error = String(error).slice(0,400); }
     try { UrlFetchApp.fetch(GIFT_API_URL,{method:'post',contentType:'application/json',headers:{'x-gift-secret':secret},payload:JSON.stringify(outcome),muteHttpExceptions:true}); } catch (ignored) {}
