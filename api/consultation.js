@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   if (body.action === 'gift-submit') {
     if (body.website) return res.status(200).json({ok:true});
     const clean = (value, max) => String(value || '').trim().slice(0, max);
-    const validEmail = value => /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(value || '').trim());
+      const validEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
     const name = clean(body.name,120);
     const email = clean(body.email,180).toLowerCase();
     const phone = clean(body.phone,40);
