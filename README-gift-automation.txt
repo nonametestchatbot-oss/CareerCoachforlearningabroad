@@ -1,0 +1,1 @@
+Trang quà tặng và cấu hình chia sẻ riêng: xem docs/GIFT_AUTOMATION.md. Trang công khai nằm tại /qua-tang. Google Apps Script và hai biến môi trường Vercel cần được cấu hình trước khi form cấp quyền thật.
