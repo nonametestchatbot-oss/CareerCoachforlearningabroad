@@ -60,9 +60,15 @@ let selectedTemplateKey = null;
 
 function escapeHtml(value) { return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
 function setStatus(element, message, error = false) { element.textContent = message; element.classList.toggle('error', error); }
-function readSession() { try { return JSON.parse(sessionStorage.getItem(sessionKey) || 'null'); } catch { return null; } }
-function saveSession(value) { session = value; sessionStorage.setItem(sessionKey, JSON.stringify(value)); }
-function clearSession() { session = null; sessionStorage.removeItem(sessionKey); }
+function readSession() { try { return JSON.parse(localStorage.getItem(sessionKey) || sessionStorage.getItem(sessionKey) || 'null'); } catch { return null; } }
+function saveSession(value) {
+  const createdAt = session?.createdAt || value.createdAt || Date.now();
+  const expiresIn = Number(value.expiresIn || value.expires_in || 3600);
+  session = {...value, createdAt, expiresAt: Date.now() + expiresIn * 1000};
+  localStorage.setItem(sessionKey, JSON.stringify(session));
+  sessionStorage.setItem(sessionKey, JSON.stringify(session));
+}
+function clearSession() { session = null; localStorage.removeItem(sessionKey); sessionStorage.removeItem(sessionKey); }
 async function api(path, options = {}) {
   const routeMap = {
     '/api/crm-auth-request': '/api/crm?action=auth-request',
@@ -389,7 +395,19 @@ function updateDialogScore() { const values = ['fitScore','intentScore','engagem
 leadForm.addEventListener('submit', async event => { event.preventDefault(); const button = document.getElementById('save-lead-button'); button.disabled = true; setStatus(dialogStatus, 'Đang lưu…'); const formData = new FormData(leadForm); const body = {name:formData.get('name'),email:formData.get('email'),phone:formData.get('phone'),source:formData.get('source'),need:formData.get('need'),nextAction:formData.get('nextAction'),status:formData.get('status'),fitScore:formData.get('fitScore'),intentScore:formData.get('intentScore'),engagementScore:formData.get('engagementScore')}; try { body.scoreReasons = JSON.parse(String(formData.get('scoreReasons') || '{}')); } catch { body.scoreReasons = {note:String(formData.get('scoreReasons') || '').slice(0,1000)}; } try { let saved; if (editingLead) { saved = (await api(`/api/crm-lead?id=${encodeURIComponent(editingLead.id)}`, {method:'PATCH', body:JSON.stringify({...body,email:body.email || editingLead.email || '',phone:body.phone || editingLead.phone || '',landingPageUrl:editingLead.landing_page_url || '',utm:editingLead.utm || {},student:editingLead.student_context || ''})})).lead; const note = String(formData.get('activityNote') || '').trim(); if (note) await api('/api/crm-activity', {method:'POST', body:JSON.stringify({leadId:editingLead.id,note,activityType:'manual_note'})}); } else saved = (await api('/api/crm-leads', {method:'POST', body:JSON.stringify(body)})).lead; const index = leads.findIndex(lead => lead.id === saved.id); if (index >= 0) leads[index] = saved; else leads.unshift(saved); populateFilters(); renderBoard(); dialog.close(); setStatus(appStatus, 'Đã lưu lead.'); } catch (error) { setStatus(dialogStatus, error.message, true); } finally { button.disabled = false; } });
 
 fillStatusOptions();
-session = readSession();
-if (session?.accessToken) { showApp(); loadLeads(); } else showAuth();
+async function initializeCrm() {
+  session = readSession();
+  if (!session?.accessToken || !session?.refreshToken || Date.now() - Number(session.createdAt || 0) > 30 * 86400000) { clearSession(); showAuth(); return; }
+  try {
+    if (!session.expiresAt || Date.now() > session.expiresAt - 90000) {
+      const response = await fetch('/api/crm?action=auth-refresh', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({refreshToken:session.refreshToken})});
+      const data = await response.json();
+      if (!response.ok || !data.ok) throw new Error(data.error || 'Phiên đăng nhập hết hạn.');
+      saveSession({...data,createdAt:session.createdAt});
+    }
+    showApp(); await loadLeads();
+  } catch (error) { clearSession(); showAuth(); setStatus(authStatus, error.message || 'Vui lòng đăng nhập lại.', true); }
+}
+initializeCrm();
 
 
