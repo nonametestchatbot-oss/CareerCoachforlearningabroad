@@ -1,14 +1,21 @@
-let authToken = '';
-let email = '';
+const sessionKey='linhCoachCrmSession';
+let session=null, authToken='', email='';
 let dashboard = {grants:[],attempts:[]};
 const $ = id => document.getElementById(id);
 const status = (id,text,error=false)=>{$(id).textContent=text;$(id).classList.toggle('admin-error',error);};
 const esc=value=>String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 const date=value=>value?new Date(value).toLocaleString('vi-VN'):'—';
 const related=value=>Array.isArray(value)?value[0]||{}:(value||{});
-async function call(path,options={}) {
- const response=await fetch(path,{...options,headers:{'Content-Type':'application/json',Authorization:`Bearer ${authToken}`,...(options.headers||{})}});
- const data=await response.json(); if(!response.ok||!data.ok)throw new Error(data.error||'Không thực hiện được'); return data;
+function saveSession(value){session={...session,...value,createdAt:session?.createdAt||value.createdAt||Date.now()};session.expiresAt=Date.now()+50*60*1000;authToken=session.accessToken;localStorage.setItem(sessionKey,JSON.stringify(session));sessionStorage.setItem(sessionKey,JSON.stringify(session));}
+function clearSession(){session=null;authToken='';localStorage.removeItem(sessionKey);sessionStorage.removeItem(sessionKey);}
+function readSession(){try{const value=JSON.parse(localStorage.getItem(sessionKey)||sessionStorage.getItem(sessionKey)||'null');return value?.accessToken&&value?.refreshToken&&Date.now()-Number(value.createdAt||Date.now())<30*86400000?value:null;}catch{return null;}}
+async function refreshSession(){if(!session?.refreshToken)throw new Error('Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.');const response=await fetch('/api/crm?action=auth-refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({refreshToken:session.refreshToken})});const data=await response.json().catch(()=>({}));if(!response.ok||!data.ok){clearSession();throw new Error(data.error||'Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.');}saveSession({...data,createdAt:session.createdAt});}
+async function call(path,options={}){
+ if(session?.expiresAt&&Date.now()>session.expiresAt-90000)await refreshSession();
+ const send=()=>fetch(path,{...options,headers:{'Content-Type':'application/json',Authorization:`Bearer ${authToken}`,...(options.headers||{})},cache:'no-store'});
+ let response=await send();
+ if(response.status===401&&session?.refreshToken){await refreshSession();response=await send();}
+ const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.error||'Không thực hiện được');return data;
 }
 let otpCooldownTimer;
 function startOtpCooldown(seconds) {
@@ -30,19 +37,19 @@ function startOtpCooldown(seconds) {
 async function requestOtp(event) {
  event.preventDefault(); email=$('admin-email').value.trim().toLowerCase();
  try {
-  const response=await fetch('/api/assessment-auth-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+  const response=await fetch('/api/crm?action=auth-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
   let data={}; try { data=await response.json(); } catch {}
   if(!response.ok||!data.ok) {
    if(response.status===429)startOtpCooldown(data.retryAfterSeconds||60);
    throw new Error(data.error||'Chưa gửi được email đăng nhập. Vui lòng thử lại sau ít phút.');
   }
   $('verify-form').hidden=true;startOtpCooldown(60);
-  status('login-status','Email đăng nhập đã được gửi. Mở liên kết trong email này trên trình duyệt để vào quản trị.');
+  $('verify-form').hidden=false;status('login-status','Mã 6 số đã được gửi. Hãy nhập mã trong email để vào quản trị.');
  } catch(error){status('login-status',error.message||'Chưa gửi được email đăng nhập. Vui lòng thử lại sau ít phút.',true);}
 }
 async function verifyOtp(event) {
  event.preventDefault();
- try {const response=await fetch('/api/assessment-auth-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,otp:$('admin-otp').value.trim()})});const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.error);authToken=data.accessToken;$('login-card').hidden=true;$('panel').hidden=false;await loadDashboard();}
+ try {const response=await fetch('/api/crm?action=auth-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,otp:$('admin-otp').value.trim()})});const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.error);saveSession(data);$('login-card').hidden=true;$('panel').hidden=false;await loadDashboard();}
  catch(error){status('login-status',error.message,true);}
 }
 function grantHtml(grant) {
@@ -76,14 +83,9 @@ async function grant(event) {
  try {await call('/api/admin-assessment-grants',{method:'POST',body:JSON.stringify({email:$('grant-email').value,name:$('grant-name').value,notes:$('grant-notes').value,showPreviousResult:$('show-previous').checked})});status('grant-status','Đã cấp lượt làm bài trong 30 ngày.');event.target.reset();await loadDashboard();}
  catch(error){status('grant-status',error.message,true);}
 }
-async function consumeMagicLink() {
- const params=new URLSearchParams(window.location.hash.slice(1));
- const token=params.get('access_token');
- const error=params.get('error_description')||params.get('error');
- if(!token){if(error)status('login-status','Liên kết đăng nhập không còn hiệu lực. Hãy yêu cầu email mới.',true);return;}
- window.history.replaceState(null,'',window.location.pathname+window.location.search);
- authToken=token;
- try {await loadDashboard();$('login-card').hidden=true;$('panel').hidden=false;}
- catch {authToken='';status('login-status','Không xác nhận được liên kết quản trị. Hãy yêu cầu email đăng nhập mới.',true);}
-}
-$('login-form').addEventListener('submit',requestOtp);consumeMagicLink();$('verify-form').addEventListener('submit',verifyOtp);$('grant-form').addEventListener('submit',grant);$('admin-search').addEventListener('input',renderDashboard);
+$('login-form').addEventListener('submit',requestOtp);
+$('verify-form').addEventListener('submit',verifyOtp);
+$('grant-form').addEventListener('submit',grant);
+$('admin-search').addEventListener('input',renderDashboard);
+session=readSession();
+if(session){authToken=session.accessToken;email=session.user?.email||'';$('login-card').hidden=true;$('panel').hidden=false;loadDashboard().catch(error=>{clearSession();$('login-card').hidden=false;$('panel').hidden=true;status('login-status',error.message,true);});}
