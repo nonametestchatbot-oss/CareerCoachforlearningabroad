@@ -60,9 +60,30 @@ let selectedTemplateKey = null;
 
 function escapeHtml(value) { return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
 function setStatus(element, message, error = false) { element.textContent = message; element.classList.toggle('error', error); }
-function readSession() { try { return JSON.parse(sessionStorage.getItem(sessionKey) || 'null'); } catch { return null; } }
-function saveSession(value) { session = value; sessionStorage.setItem(sessionKey, JSON.stringify(value)); }
-function clearSession() { session = null; sessionStorage.removeItem(sessionKey); }
+function readSession() {
+  try {
+    const saved = localStorage.getItem(sessionKey) || sessionStorage.getItem(sessionKey);
+    const value = saved ? JSON.parse(saved) : null;
+    if (!value?.accessToken || !value?.refreshToken || Date.now() - Number(value.createdAt || Date.now()) > 30 * 86400000) return null;
+    return value;
+  } catch { return null; }
+}
+function saveSession(value) {
+  const previous = session || {};
+  session = {...previous, ...value, createdAt: previous.createdAt || value.createdAt || Date.now()};
+  session.expiresAt = Date.now() + 50 * 60 * 1000;
+  localStorage.setItem(sessionKey, JSON.stringify(session));
+  sessionStorage.setItem(sessionKey, JSON.stringify(session));
+}
+function clearSession() { session = null; localStorage.removeItem(sessionKey); sessionStorage.removeItem(sessionKey); }
+async function refreshSession() {
+  if (!session?.refreshToken || Date.now() - Number(session.createdAt || 0) > 30 * 86400000) throw new Error('Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.');
+  const response = await fetch('/api/crm?action=auth-refresh', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({refreshToken:session.refreshToken}),cache:'no-store'});
+  const data = await response.json().catch(()=>({}));
+  if (!response.ok || !data.ok) { clearSession(); throw new Error(data.error || 'Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.'); }
+  saveSession({...data, createdAt:session.createdAt});
+  return session;
+}
 async function api(path, options = {}) {
   const routeMap = {
     '/api/crm-auth-request': '/api/crm?action=auth-request',
@@ -79,9 +100,17 @@ async function api(path, options = {}) {
   };
   if (routeMap[path]) path = routeMap[path];
   else if (path.startsWith('/api/crm-lead?')) path = path.replace('/api/crm-lead?', '/api/crm?action=lead&');
-  const headers = {'Content-Type':'application/json', ...(options.headers || {})};
-  if (session?.accessToken) headers.Authorization = `Bearer ${session.accessToken}`;
-  const response = await fetch(path, {...options, headers, cache:'no-store'});
+  if (session?.accessToken && session.expiresAt && Date.now() > session.expiresAt - 90000) await refreshSession();
+  const send = () => {
+    const headers = {'Content-Type':'application/json', ...(options.headers || {})};
+    if (session?.accessToken) headers.Authorization = `Bearer ${session.accessToken}`;
+    return fetch(path, {...options, headers, cache:'no-store'});
+  };
+  let response = await send();
+  if (response.status === 401 && session?.refreshToken && !path.includes('auth-verify') && !path.includes('auth-request')) {
+    await refreshSession();
+    response = await send();
+  }
   const data = await response.json().catch(() => ({}));
   if (!response.ok || !data.ok) throw new Error(data.error || 'Không thể kết nối CRM');
   return data;
