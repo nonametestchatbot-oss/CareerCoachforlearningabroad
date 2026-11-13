@@ -99,7 +99,10 @@ export default async function handler(req, res) {
   }
   if (action === 'auth-verify') {
     if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
-    try { const result = await verifyCrmOtp(bodyOf(req).email, bodyOf(req).otp); return res.status(200).json({ ok: true, ...result }); }
+    try {
+      const result = await verifyCrmOtp(bodyOf(req).email, bodyOf(req).otp);
+      return res.status(200).json({ok:true,accessToken:result.access_token,refreshToken:result.refresh_token,expiresIn:result.expires_in,user:{email:result.user?.email}});
+    }
     catch (error) { return res.status(401).json({ ok: false, error: authError(error) }); }
   }
 
