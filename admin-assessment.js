@@ -36,13 +36,13 @@ async function requestOtp(event) {
    if(response.status===429)startOtpCooldown(data.retryAfterSeconds||60);
    throw new Error(data.error||'Chưa gửi được email đăng nhập. Vui lòng thử lại sau ít phút.');
   }
-  $('verify-form').hidden=true;startOtpCooldown(60);
-  status('login-status','Email đăng nhập đã được gửi. Mở liên kết trong email này trên trình duyệt để vào quản trị.');
+  $('verify-form').hidden=false;startOtpCooldown(60);
+  status('login-status','Email đã gửi. Nếu có mã 6 số, nhập vào đây. Nếu thư chỉ có nút đăng nhập, bấm nút đó một lần; sau đó vào Workspace.');
  } catch(error){status('login-status',error.message||'Chưa gửi được email đăng nhập. Vui lòng thử lại sau ít phút.',true);}
 }
 async function verifyOtp(event) {
  event.preventDefault();
- try {const response=await fetch('/api/assessment-auth-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,otp:$('admin-otp').value.trim()})});const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.error);authToken=data.accessToken;$('login-card').hidden=true;$('panel').hidden=false;await loadDashboard();}
+ try {const response=await fetch('/api/assessment-auth-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,otp:$('admin-otp').value.trim()})});const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.error);authToken=data.accessToken;const shared={accessToken:data.accessToken,refreshToken:data.refreshToken,user:data.user,createdAt:Date.now(),expiresAt:Date.now()+50*60*1000};localStorage.setItem('linhCoachCrmSession',JSON.stringify(shared));sessionStorage.setItem('linhCoachCrmSession',JSON.stringify(shared));$('login-card').hidden=true;$('panel').hidden=false;await loadDashboard();}
  catch(error){status('login-status',error.message,true);}
 }
 function grantHtml(grant) {
@@ -78,12 +78,18 @@ async function grant(event) {
 }
 async function consumeMagicLink() {
  const params=new URLSearchParams(window.location.hash.slice(1));
- const token=params.get('access_token');
+ const refreshToken=params.get('refresh_token');
  const error=params.get('error_description')||params.get('error');
- if(!token){if(error)status('login-status','Liên kết đăng nhập không còn hiệu lực. Hãy yêu cầu email mới.',true);return;}
+ if(!refreshToken){if(error)status('login-status','Liên kết đăng nhập không còn hiệu lực. Hãy yêu cầu email mới.',true);return;}
  window.history.replaceState(null,'',window.location.pathname+window.location.search);
- authToken=token;
- try {await loadDashboard();$('login-card').hidden=true;$('panel').hidden=false;}
- catch {authToken='';status('login-status','Không xác nhận được liên kết quản trị. Hãy yêu cầu email đăng nhập mới.',true);}
+ try {
+  const response=await fetch('/api/crm?action=auth-refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({refreshToken})});
+  const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.error||'Không xác minh được tài khoản quản trị.');
+  authToken=data.accessToken;
+  const shared={accessToken:data.accessToken,refreshToken:data.refreshToken,user:data.user,createdAt:Date.now(),expiresAt:Date.now()+50*60*1000};
+  localStorage.setItem('linhCoachCrmSession',JSON.stringify(shared));sessionStorage.setItem('linhCoachCrmSession',JSON.stringify(shared));
+  await loadDashboard();$('login-card').hidden=true;$('panel').hidden=false;
+  status('login-status','Đã đăng nhập. Phiên này được lưu trên thiết bị trong tối đa 30 ngày. Mở “Workspace quản lý” phía trên để vào CRM.');
+ } catch(error) {authToken='';status('login-status',error.message||'Liên kết hết hạn. Hãy yêu cầu email mới.',true);}
 }
 $('login-form').addEventListener('submit',requestOtp);consumeMagicLink();$('verify-form').addEventListener('submit',verifyOtp);$('grant-form').addEventListener('submit',grant);$('admin-search').addEventListener('input',renderDashboard);
