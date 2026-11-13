@@ -76,6 +76,22 @@ export default async function handler(req, res) {
 
   if (action === 'gift-nurture') return handleGiftNurture(req, res, action);
 
+  if (action === 'auth-refresh') {
+    if (req.method !== 'POST') return res.status(405).json({ok:false,error:'Method not allowed'});
+    try {
+      const refreshToken = String(bodyOf(req).refreshToken || '').trim();
+      if (!refreshToken) return res.status(400).json({ok:false,error:'Thiếu thông tin phiên đăng nhập.'});
+      const config = supabaseConfig();
+      const response = await fetch(`${config.url}/auth/v1/token?grant_type=refresh_token`, {
+        method:'POST', headers:{'Content-Type':'application/json',apikey:config.anonKey},
+        body:JSON.stringify({refresh_token:refreshToken})
+      });
+      const refreshed = await response.json().catch(()=>({}));
+      if (!response.ok || !isCrmAdmin(refreshed.user?.email)) return res.status(401).json({ok:false,error:'Phiên đăng nhập hết hạn hoặc tài khoản không còn quyền quản trị.'});
+      return res.status(200).json({ok:true,accessToken:refreshed.access_token,refreshToken:refreshed.refresh_token,user:{email:refreshed.user.email}});
+    } catch (error) { return res.status(401).json({ok:false,error:'Không thể gia hạn phiên đăng nhập.'}); }
+  }
+
   if (action === 'auth-request') {
     if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
     try { await sendCrmOtp(bodyOf(req).email); return res.status(200).json({ ok: true }); }
