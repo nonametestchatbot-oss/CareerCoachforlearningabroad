@@ -80,7 +80,7 @@ async function consumeMagicLink() {
  const params=new URLSearchParams(window.location.hash.slice(1));
  const refreshToken=params.get('refresh_token');
  const error=params.get('error_description')||params.get('error');
- if(!refreshToken){if(error)status('login-status','Liên kết đăng nhập không còn hiệu lực. Hãy yêu cầu email mới.',true);return;}
+ if(!refreshToken){if(error)status('login-status','Liên kết đăng nhập không còn hiệu lực. Hãy yêu cầu email mới.',true);return false;}
  window.history.replaceState(null,'',window.location.pathname+window.location.search);
  try {
   const response=await fetch('/api/crm?action=auth-refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({refreshToken})});
@@ -90,6 +90,22 @@ async function consumeMagicLink() {
   localStorage.setItem('linhCoachCrmSession',JSON.stringify(shared));sessionStorage.setItem('linhCoachCrmSession',JSON.stringify(shared));
   await loadDashboard();$('login-card').hidden=true;$('panel').hidden=false;
   status('login-status','Đã đăng nhập. Phiên này được lưu trên thiết bị trong tối đa 30 ngày. Mở “Workspace quản lý” phía trên để vào CRM.');
- } catch(error) {authToken='';status('login-status',error.message||'Liên kết hết hạn. Hãy yêu cầu email mới.',true);}
+  return true;
+ } catch(error) {authToken='';status('login-status',error.message||'Liên kết hết hạn. Hãy yêu cầu email mới.',true);return false;}
 }
-$('login-form').addEventListener('submit',requestOtp);consumeMagicLink();$('verify-form').addEventListener('submit',verifyOtp);$('grant-form').addEventListener('submit',grant);$('admin-search').addEventListener('input',renderDashboard);
+async function restoreSharedSession() {
+ try {
+  const saved=JSON.parse(localStorage.getItem('linhCoachCrmSession')||'null');
+  if(!saved?.accessToken||!saved?.refreshToken||Date.now()-Number(saved.createdAt||0)>30*86400000)return false;
+  authToken=saved.accessToken;
+  if(!saved.expiresAt||Date.now()>saved.expiresAt-90000){
+   const response=await fetch('/api/crm?action=auth-refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({refreshToken:saved.refreshToken})});
+   const refreshed=await response.json();if(!response.ok||!refreshed.ok)throw new Error(refreshed.error||'Phiên đăng nhập hết hạn.');
+   const next={...saved,...refreshed,createdAt:saved.createdAt,expiresAt:Date.now()+50*60*1000};
+   localStorage.setItem('linhCoachCrmSession',JSON.stringify(next));sessionStorage.setItem('linhCoachCrmSession',JSON.stringify(next));authToken=next.accessToken;
+  }
+  await loadDashboard();$('login-card').hidden=true;$('panel').hidden=false;return true;
+ } catch(error) {authToken='';status('login-status',error.message||'Vui lòng đăng nhập lại.',true);return false;}
+}
+$('login-form').addEventListener('submit',requestOtp);$('verify-form').addEventListener('submit',verifyOtp);$('grant-form').addEventListener('submit',grant);$('admin-search').addEventListener('input',renderDashboard);
+(async()=>{if(!await consumeMagicLink())await restoreSharedSession();})();
