@@ -80,7 +80,14 @@ async function consumeMagicLink() {
  const params=new URLSearchParams(window.location.hash.slice(1));
  const refreshToken=params.get('refresh_token');
  const error=params.get('error_description')||params.get('error');
- if(!refreshToken){if(error)status('login-status','Liên kết đăng nhập không còn hiệu lực. Hãy yêu cầu email mới.',true);return false;}
+ if(!refreshToken){
+  if(error){
+   window.history.replaceState(null,'',window.location.pathname+window.location.search);
+   $('login-card').hidden=false;
+   status('login-status','Liên kết đã hết hạn hoặc đã được dùng. Hãy quay lại đăng nhập, yêu cầu email mới nhất và bấm liên kết đó một lần trong vòng 1 giờ.',true);
+  }
+  return false;
+ }
  window.history.replaceState(null,'',window.location.pathname+window.location.search);
  try {
   const response=await fetch('/api/crm?action=auth-refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({refreshToken})});
@@ -88,8 +95,7 @@ async function consumeMagicLink() {
   authToken=data.accessToken;
   const shared={accessToken:data.accessToken,refreshToken:data.refreshToken,user:data.user,createdAt:Date.now(),expiresAt:Date.now()+50*60*1000};
   localStorage.setItem('linhCoachCrmSession',JSON.stringify(shared));sessionStorage.setItem('linhCoachCrmSession',JSON.stringify(shared));
-  await loadDashboard();$('login-card').hidden=true;$('panel').hidden=false;
-  status('login-status','Đã đăng nhập. Phiên này được lưu trên thiết bị trong tối đa 30 ngày. Mở “Workspace quản lý” phía trên để vào CRM.');
+  window.location.replace('/admin');
   return true;
  } catch(error) {authToken='';status('login-status',error.message||'Liên kết hết hạn. Hãy yêu cầu email mới.',true);return false;}
 }
@@ -104,7 +110,7 @@ async function restoreSharedSession() {
    const next={...saved,...refreshed,createdAt:saved.createdAt,expiresAt:Date.now()+50*60*1000};
    localStorage.setItem('linhCoachCrmSession',JSON.stringify(next));sessionStorage.setItem('linhCoachCrmSession',JSON.stringify(next));authToken=next.accessToken;
   }
-  await loadDashboard();$('login-card').hidden=true;$('panel').hidden=false;return true;
+  window.location.replace('/admin');return true;
  } catch(error) {authToken='';status('login-status',error.message||'Vui lòng đăng nhập lại.',true);return false;}
 }
 $('login-form').addEventListener('submit',requestOtp);$('verify-form').addEventListener('submit',verifyOtp);$('grant-form').addEventListener('submit',grant);$('admin-search').addEventListener('input',renderDashboard);
