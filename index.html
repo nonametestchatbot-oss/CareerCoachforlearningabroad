@@ -9,6 +9,17 @@
   <meta property="og:description" content="Một giờ để con hiểu mình, hiểu ngành và biết bước tiếp theo nên làm gì.">
   <meta property="og:image" content="https://duhocbenvung.linhcoach-eqstrength.com/assets/coach-optimized.jpg">
   <title>Trước khi chọn trường, hãy cùng con chọn đúng ngành | Linh Coach</title>
+  <script>
+    // Supabase may return an auth link to the site root. Forward auth results
+    // to the handler before rendering the public landing page.
+    (() => {
+      const hash = window.location.hash;
+      const params = new URLSearchParams(hash.slice(1));
+      if (params.has('access_token') || params.has('refresh_token') || params.has('error')) {
+        window.location.replace('/admin-assessment' + window.location.search + hash);
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
