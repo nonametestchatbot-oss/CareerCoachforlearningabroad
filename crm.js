@@ -99,8 +99,8 @@ emailForm.addEventListener('submit', async event => {
   event.preventDefault();
   const email = emailInput.value.trim();
   const button = emailForm.querySelector('button'); button.disabled = true;
-  setStatus(authStatus, 'Đang gửi mã xác thực…');
-  try { await api('/api/crm-auth-request', {method:'POST', body:JSON.stringify({email})}); emailForm.hidden = true; otpForm.hidden = false; otpInput.focus(); setStatus(authStatus, 'Mã đã được gửi. Kiểm tra hộp thư và nhập mã 6 chữ số.'); }
+  setStatus(authStatus, 'Đang yêu cầu email đăng nhập…');
+  try { await api('/api/crm-auth-request', {method:'POST', body:JSON.stringify({email})}); emailForm.hidden = true; otpForm.hidden = false; otpInput.focus(); setStatus(authStatus, 'Email đăng nhập đã được yêu cầu. Nếu thư có liên kết, hãy mở email mới nhất và bấm một lần; nếu có mã 6 số, nhập mã bên dưới.'); }
   catch (error) { setStatus(authStatus, error.message, true); }
   finally { button.disabled = false; }
 });
