@@ -406,7 +406,7 @@ async function initializeCrm() {
       saveSession({...data,createdAt:session.createdAt});
     }
     showApp(); await loadLeads();
-  } catch (error) { clearSession(); showAuth(); setStatus(authStatus, error.message || 'Vui lòng đăng nhập lại.', true); }
+  } catch (error) { clearSession(); showAuth(); setStatus(authStatus, 'Phiên đăng nhập cũ đã hết hạn hoặc không thể gia hạn. Hãy yêu cầu email đăng nhập mới.', true); }
 }
 initializeCrm();
 
