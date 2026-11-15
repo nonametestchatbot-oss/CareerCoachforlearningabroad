@@ -1,5 +1,5 @@
 import { sendCrmOtp, verifyCrmOtp, requireCrmAdmin } from '../lib/crm-auth.js';
-import { supabaseTable } from '../lib/supabase.js';
+import { supabaseTable, supabaseGetUser } from '../lib/supabase.js';
 import { listLeads, upsertLead, updateLead, addLeadActivity, getLeadProfile, addLeadEmailHistory } from '../lib/crm.js';
 import { getNurtureProfile, updateNurtureConsent, queueNurtureForLead, updateNurtureDraft, getNurtureTemplates, saveNurtureTemplate } from '../lib/nurture.js';
 
@@ -76,6 +76,21 @@ export default async function handler(req, res) {
 
   if (action === 'gift-nurture') return handleGiftNurture(req, res, action);
 
+  if (action === 'auth-session') {
+    if (req.method !== 'POST') return res.status(405).json({ok:false,error:'Method not allowed'});
+    try {
+      const body = bodyOf(req);
+      const accessToken = String(body.accessToken || '').trim();
+      const refreshToken = String(body.refreshToken || '').trim();
+      if (!accessToken || !refreshToken) return res.status(400).json({ok:false,error:'Thiếu thông tin phiên đăng nhập.'});
+      const user = await supabaseGetUser(accessToken);
+      if (!isCrmAdmin(user.email)) return res.status(403).json({ok:false,error:'Email này chưa được cấp quyền quản trị.'});
+      return res.status(200).json({ok:true,accessToken,refreshToken,user:{email:user.email}});
+    } catch (error) {
+      return res.status(401).json({ok:false,error:'Liên kết đăng nhập đã hết hạn hoặc không hợp lệ. Hãy yêu cầu email mới.'});
+    }
+  }
+
   if (action === 'auth-refresh') {
     if (req.method !== 'POST') return res.status(405).json({ok:false,error:'Method not allowed'});
     try {
@@ -89,7 +104,7 @@ export default async function handler(req, res) {
       const refreshed = await response.json().catch(()=>({}));
       if (!response.ok || !isCrmAdmin(refreshed.user?.email)) return res.status(401).json({ok:false,error:'Phiên đăng nhập hết hạn hoặc tài khoản không còn quyền quản trị.'});
       return res.status(200).json({ok:true,accessToken:refreshed.access_token,refreshToken:refreshed.refresh_token,user:{email:refreshed.user.email}});
-    } catch (error) { return res.status(401).json({ok:false,error:'Không thể gia hạn phiên đăng nhập.'}); }
+    } catch (error) { return res.status(401).json({ok:false,error:'Phiên đăng nhập đã hết hạn hoặc không thể kết nối để gia hạn. Hãy yêu cầu email đăng nhập mới.'}); }
   }
 
   if (action === 'auth-request') {
