@@ -42,7 +42,7 @@ async function requestOtp(event) {
 }
 async function verifyOtp(event) {
  event.preventDefault();
- try {const response=await fetch('/api/assessment-auth-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,otp:$('admin-otp').value.trim()})});const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.error);authToken=data.accessToken;const shared={accessToken:data.accessToken,refreshToken:data.refreshToken,user:data.user,createdAt:Date.now(),expiresAt:Date.now()+50*60*1000};localStorage.setItem('linhCoachCrmSession',JSON.stringify(shared));sessionStorage.setItem('linhCoachCrmSession',JSON.stringify(shared));$('login-card').hidden=true;$('panel').hidden=false;await loadDashboard();}
+ try {const response=await fetch('/api/assessment-auth-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,otp:$('admin-otp').value.trim()})});const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.error);const shared={accessToken:data.accessToken,refreshToken:data.refreshToken,user:data.user,createdAt:Date.now(),expiresAt:Date.now()+50*60*1000};localStorage.setItem('linhCoachCrmSession',JSON.stringify(shared));sessionStorage.setItem('linhCoachCrmSession',JSON.stringify(shared));window.location.replace('/admin');}
  catch(error){status('login-status',error.message,true);}
 }
 function grantHtml(grant) {
@@ -78,9 +78,10 @@ async function grant(event) {
 }
 async function consumeMagicLink() {
  const params=new URLSearchParams(window.location.hash.slice(1));
+ const accessToken=params.get('access_token');
  const refreshToken=params.get('refresh_token');
  const error=params.get('error_description')||params.get('error');
- if(!refreshToken){
+ if(!accessToken||!refreshToken){
   if(error){
    window.history.replaceState(null,'',window.location.pathname+window.location.search);
    $('login-card').hidden=false;
@@ -90,7 +91,7 @@ async function consumeMagicLink() {
  }
  window.history.replaceState(null,'',window.location.pathname+window.location.search);
  try {
-  const response=await fetch('/api/crm?action=auth-refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({refreshToken})});
+  const response=await fetch('/api/crm?action=auth-session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken,refreshToken})});
   const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.error||'Không xác minh được tài khoản quản trị.');
   authToken=data.accessToken;
   const shared={accessToken:data.accessToken,refreshToken:data.refreshToken,user:data.user,createdAt:Date.now(),expiresAt:Date.now()+50*60*1000};
@@ -111,7 +112,7 @@ async function restoreSharedSession() {
    localStorage.setItem('linhCoachCrmSession',JSON.stringify(next));sessionStorage.setItem('linhCoachCrmSession',JSON.stringify(next));authToken=next.accessToken;
   }
   window.location.replace('/admin');return true;
- } catch(error) {authToken='';status('login-status',error.message||'Vui lòng đăng nhập lại.',true);return false;}
+ } catch(error) {authToken='';localStorage.removeItem('linhCoachCrmSession');sessionStorage.removeItem('linhCoachCrmSession');status('login-status','Phiên đăng nhập cũ đã hết hạn hoặc không thể gia hạn. Hãy yêu cầu email đăng nhập mới.',true);return false;}
 }
 $('login-form').addEventListener('submit',requestOtp);$('verify-form').addEventListener('submit',verifyOtp);$('grant-form').addEventListener('submit',grant);$('admin-search').addEventListener('input',renderDashboard);
 (async()=>{if(!await consumeMagicLink())await restoreSharedSession();})();
