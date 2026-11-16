@@ -13,7 +13,7 @@ function providerError(error) {
     || detail?.error_code === 'over_email_send_rate_limit'
     || /over_email_send_rate_limit/i.test(message);
   if (isRateLimited) {
-    const seconds = Number(message.match(/after\\s+(\\d+)\\s+seconds?/i)?.[1] || 60);
+    const seconds = Number(message.match(/after\s+(\d+)\s+seconds?/i)?.[1] || 60);
     return {
       status: 429,
       retryAfterSeconds: seconds,
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
     const email = normalizeEmail(body.email);
     const code = String(body.code || '').trim().toUpperCase();
-    if (!/^\\S+@\\S+\\.\\S+$/.test(email)) return res.status(400).json({ ok: false, error: 'Vui lòng nhập email hợp lệ.' });
+    if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ ok: false, error: 'Vui lòng nhập email hợp lệ.' });
 
     const user = await findUserByEmail(email);
     const activeGrant = user ? await grantForUser(user.id, false) : null;
