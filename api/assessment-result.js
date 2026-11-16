@@ -1,5 +1,5 @@
 import { bearerToken, supabaseAuthUser } from '../lib/supabase.js';
-import { ensureAssessmentUser, getAttemptForUser, latestAttempts } from '../lib/assessment-access.js';
+import { getAttemptForUser, latestAttempts, resolveAssessmentSession } from '../lib/assessment-access.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -7,10 +7,9 @@ export default async function handler(req, res) {
     const authToken = bearerToken(req);
     const attemptId = String(req.query?.id || '').trim();
     if (authToken && attemptId) {
-      const authUser = await supabaseAuthUser(authToken);
-      const user = await ensureAssessmentUser(authUser);
+      const { user, grantId } = await resolveAssessmentSession(authToken);
       const attempt = await getAttemptForUser(attemptId, user.id);
-      if (!attempt || new Date(attempt.expires_at).getTime() <= Date.now()) throw new Error('Expired');
+      if (!attempt || (grantId && attempt.grant_id !== grantId) || new Date(attempt.expires_at).getTime() <= Date.now()) throw new Error('Expired');
       const showPrevious = Boolean(attempt.assessment_access_grants?.show_previous_result);
       const attempts = showPrevious ? await latestAttempts(user.id, 5) : [];
       const previous = attempts.find(item => item.id !== attempt.id && new Date(item.expires_at).getTime() > Date.now());
