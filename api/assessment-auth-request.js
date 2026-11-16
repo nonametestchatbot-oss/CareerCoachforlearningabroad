@@ -32,10 +32,10 @@ export default async function handler(req, res) {
     if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ ok: false, error: 'Vui lòng nhập email hợp lệ.' });
 
     const user = await findUserByEmail(email);
-    const activeGrant = user ? await grantForUser(user.id, false) : null;
+    const activeGrant = user ? await grantForUser(user.id, true) : null;
     if (activeGrant) {
       const identity = await ensureAssessmentUser({ id: user.auth_user_id || randomUUID(), email });
-      const currentGrant = await grantForUser(identity.id, false);
+      const currentGrant = await grantForUser(identity.id, true);
       if (!currentGrant || currentGrant.id !== activeGrant.id) return res.status(403).json({ ok: false, error: 'Lượt làm bài không còn hiệu lực. Hãy liên hệ Linh để được hỗ trợ.' });
       const expiresAt = Math.floor(new Date(currentGrant.expires_at).getTime() / 1000);
       const accessToken = signToken({ type: 'assessment_access', email, userId: identity.id, authUserId: identity.auth_user_id, grantId: currentGrant.id, exp: expiresAt });
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
         ok: true,
         accessToken,
         user: { email },
-        grant: { id: currentGrant.id, expiresAt: currentGrant.expires_at, attemptUsed: false, showPreviousResult: currentGrant.show_previous_result }
+        grant: { id: currentGrant.id, expiresAt: currentGrant.expires_at, attemptUsed: Boolean(currentGrant.attempt_used), showPreviousResult: currentGrant.show_previous_result }
       });
     }
 

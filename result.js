@@ -59,24 +59,33 @@ function renderCountryOptions() {
   }
   countrySelect.innerHTML = '<option value="">Chọn một nước để so sánh</option>' + COUNTRY_PROFILES.map(profile => `<option value="${escapeHtml(profile.id)}">${escapeHtml(countryLabel(profile))}</option>`).join('');
   countrySelect.disabled = false;
-  countryStatus.textContent = 'Điểm quốc gia được chuẩn hoá từ vị trí điểm trong các biểu đồ bạn cung cấp; đây là mốc tham chiếu ở cấp độ xã hội, không phải nhãn dán cho từng cá nhân.';
+  countryStatus.textContent = 'Hồ sơ quốc gia là mốc minh họa do biên tập, không phải số liệu khảo sát hay điểm chuẩn. Chúng không mô tả mọi cá nhân trong một nước.';
+  renderCountryComparison();
 }
 
 function distanceToCountry(profile) {
-  return Math.sqrt(userResults.reduce((sum, result) => sum + Math.pow(Number(result.position) - Number(profile.scores[result.key]), 2), 0));
+  const squared = userResults.reduce((sum, result) => sum + Math.pow(Number(result.position) - Number(profile.scores[result.key]), 2), 0);
+  return userResults.length ? Math.sqrt(squared / userResults.length) : Infinity;
+}
+
+function countryScoreRows(profile) {
+  return userResults.map(result => {
+    const userScore = Math.max(0, Math.min(100, Number(result.position) || 0));
+    const countryScore = Math.max(0, Math.min(100, Number(profile.scores[result.key]) || 0));
+    return `<div class="country-profile-row"><span class="country-profile-axis"><strong>${escapeHtml(result.key)}</strong> · ${escapeHtml(result.left)} — ${escapeHtml(result.right)}</span><span class="country-score-track" role="img" aria-label="Quốc gia ${countryScore}, bạn ${userScore} trên 100"><span class="country-score-fill" style="width:${countryScore}%"></span><i class="country-user-marker" style="left:${userScore}%"></i></span><strong class="country-score-values">${countryScore} / ${userScore}</strong></div>`;
+  }).join('');
 }
 
 function renderCountryComparison() {
-  if (!countryResults || !countrySelect || !COUNTRY_PROFILES.length) return;
+  if (!countryResults || !countrySelect || !COUNTRY_PROFILES.length || !userResults.length) return;
   const selected = COUNTRY_PROFILES.find(profile => profile.id === countrySelect.value);
-  if (!selected) {
-    countryResults.innerHTML = '';
-    return;
-  }
-  const selectedLabel = countryLabel(selected);
-  const rows = userResults.map(result => `<div class="country-row"><span>${escapeHtml(result.key)} · ${escapeHtml(result.left)} — ${escapeHtml(result.right)}</span><strong>${result.position}/100</strong><span>${selected.scores[result.key]}%</span></div>`).join('');
-  const nearest = COUNTRY_PROFILES.filter(profile => profile.id !== selected.id).map(profile => ({profile, distance: distanceToCountry(profile)})).sort((a, b) => a.distance - b.distance).slice(0, 3);
-  countryResults.innerHTML = `<div class="country-compare-card"><h3>${escapeHtml(selectedLabel)} và kết quả của bạn</h3><p>So sánh theo khoảng cách Euclid trên 5 trục; khoảng cách nhỏ hơn nghĩa là hồ sơ tham chiếu gần hơn.</p><div class="country-table"><div class="country-row country-row-head"><span>Trục</span><strong>Bạn</strong><strong>${escapeHtml(selectedLabel)}</strong></div>${rows}</div></div><div class="country-compare-card"><h3>3 nước có hồ sơ gần nhất</h3><ol class="nearest-list">${nearest.map(item => `<li><span>${escapeHtml(countryLabel(item.profile))}</span><strong>Khoảng cách ${item.distance.toFixed(1)}</strong></li>`).join('')}</ol></div>`;
+  const nearest = COUNTRY_PROFILES.map(profile => ({profile, distance: distanceToCountry(profile)}))
+    .sort((a, b) => a.distance - b.distance).slice(0, 3);
+  const selectedCard = selected
+    ? `<div class="country-compare-card"><h3>${escapeHtml(countryLabel(selected))} và hồ sơ của bạn</h3><p>Thanh màu là mốc tham khảo của quốc gia; vạch đậm là vị trí của bạn. Khoảng cách được tính trên 5 trục.</p><div class="country-profile-chart">${countryScoreRows(selected)}</div><div class="country-chart-legend"><span><i class="legend-country"></i> Mốc quốc gia</span><span><i class="legend-user"></i> Kết quả của bạn</span></div></div>`
+    : `<div class="country-compare-card"><h3>Chọn một nước để đối chiếu</h3><p>Chọn nước ở phía trên để xem 5 trục cạnh hồ sơ tham khảo. Ba nước gần nhất với điểm của bạn vẫn được hiển thị bên dưới.</p></div>`;
+  const nearestCards = nearest.map((item, index) => `<article class="nearest-country-card"><header><span class="nearest-country-rank">#${index + 1}</span><span class="nearest-country-name"><strong>${escapeHtml(countryLabel(item.profile))}</strong><small>Độ lệch trung bình: ${item.distance.toFixed(1)} điểm</small></span></header><div class="country-profile-chart country-mini-chart">${countryScoreRows(item.profile)}</div></article>`).join('');
+  countryResults.innerHTML = `${selectedCard}<div class="nearest-country-section"><h3>3 nước có hồ sơ gần nhất với bạn</h3><p>Mỗi thẻ cho thấy 5 trục; thanh màu là hồ sơ tham khảo, vạch đậm là kết quả của bạn.</p><div class="nearest-country-grid">${nearestCards}</div></div>`;
 }
 
 async function loadResult() {
