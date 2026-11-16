@@ -59,7 +59,8 @@ function renderCountryOptions() {
   }
   countrySelect.innerHTML = '<option value="">Chọn một nước để so sánh</option>' + COUNTRY_PROFILES.map(profile => `<option value="${escapeHtml(profile.id)}">${escapeHtml(countryLabel(profile))}</option>`).join('');
   countrySelect.disabled = false;
-  countryStatus.textContent = 'Điểm quốc gia được chuẩn hoá từ vị trí điểm trong các biểu đồ bạn cung cấp; đây là mốc tham chiếu ở cấp độ xã hội, không phải nhãn dán cho từng cá nhân.';
+  countryStatus.textContent = 'Hồ sơ quốc gia là mốc minh họa do biên tập, không phải số liệu khảo sát hay điểm chuẩn. Chúng không mô tả mọi cá nhân trong một nước.';
+  renderCountryComparison();
 }
 
 function distanceToCountry(profile) {
