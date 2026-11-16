@@ -95,6 +95,15 @@ async function requestOtp(event) {
     const response = await fetch('/api/assessment-auth-request', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:pendingEmail,code:pendingCode})});
     const data = await response.json();
     if (!response.ok || !data.ok) throw new Error(data.error);
+    if (data.accessToken && data.grant) {
+      accessToken = data.accessToken;
+      sessionStorage.setItem('linhCoachAssessmentAuth', accessToken);
+      grant = data.grant;
+      emailStep.hidden = true; otpStep.hidden = true; logoutButton.hidden = false;
+      setStatus(accessStatus, `Đã xác nhận quyền. Lượt làm bài có hiệu lực đến ${new Date(grant.expiresAt).toLocaleDateString('vi-VN')}.`);
+      showProfileStep();
+      return;
+    }
     emailStep.hidden = true; otpStep.hidden = false; emailLabel.textContent = pendingEmail; otpInput.focus();
     setStatus(accessStatus, 'Mã xác thực đã được gửi.');
   } catch(error) { setStatus(accessStatus,error.message || 'Chưa gửi được mã xác thực.',true); }
