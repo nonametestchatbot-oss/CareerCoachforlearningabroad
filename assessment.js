@@ -100,6 +100,15 @@ async function requestOtp(event) {
       sessionStorage.setItem('linhCoachAssessmentAuth', accessToken);
       grant = data.grant;
       emailStep.hidden = true; otpStep.hidden = true; logoutButton.hidden = false;
+      if (grant.attemptUsed) {
+        setStatus(accessStatus, 'Lượt này đã được sử dụng. Bạn có thể mở lại kết quả trong thời hạn 30 ngày.');
+        const accessResponse = await fetch('/api/assessment-access', {headers:authHeaders(),cache:'no-store'});
+        const access = await accessResponse.json();
+        if (!accessResponse.ok || !access.ok) throw new Error(access.error || 'Chưa tải được quyền truy cập.');
+        if (access.latestAttemptId) showUsedResult(access.latestAttemptId);
+        else setStatus(accessStatus, 'Chưa tìm thấy kết quả còn hiệu lực. Hãy liên hệ Linh để được hỗ trợ.', true);
+        return;
+      }
       setStatus(accessStatus, `Đã xác nhận quyền. Lượt làm bài có hiệu lực đến ${new Date(grant.expiresAt).toLocaleDateString('vi-VN')}.`);
       showProfileStep();
       return;
