@@ -1,7 +1,7 @@
 import { calculateResults } from '../lib/assessment.js';
 
 import { bearerToken, supabaseAuthUser, supabaseRpc } from '../lib/supabase.js';
-import { ensureAssessmentUser, grantForUser } from '../lib/assessment-access.js';
+import { grantForUser, resolveAssessmentSession } from '../lib/assessment-access.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -11,10 +11,9 @@ export default async function handler(req, res) {
     const results = calculateResults(body.answers);
     const authToken = bearerToken(req);
     if (authToken) {
-      const authUser = await supabaseAuthUser(authToken);
-      const user = await ensureAssessmentUser(authUser);
+      const { authUser, user, grantId } = await resolveAssessmentSession(authToken);
       const grant = await grantForUser(user.id, false);
-      if (!grant) throw new Error('Assessment access is unavailable');
+      if (!grant || (grantId && grant.id !== grantId)) throw new Error('Assessment access is unavailable');
       const inserted = await supabaseRpc('submit_assessment', { p_auth_user_id: authUser.id, p_grant_id: grant.id, p_answers: { ...body.answers, _profileType: ['student','professional'].includes(body.profileType) ? body.profileType : 'student' }, p_results: results });
       const attempt = Array.isArray(inserted) ? inserted[0] : inserted;
       if (!attempt?.id) throw new Error('Assessment result was not saved');
