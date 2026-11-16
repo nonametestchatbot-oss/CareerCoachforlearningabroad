@@ -6,8 +6,20 @@ const status = (id,text,error=false)=>{$(id).textContent=text;$(id).classList.to
 const esc=value=>String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 const date=value=>value?new Date(value).toLocaleString('vi-VN'):'—';
 const related=value=>Array.isArray(value)?value[0]||{}:(value||{});
-async function call(path,options={}) {
+async function refreshSharedSession() {
+ try {
+  const saved=JSON.parse(localStorage.getItem('linhCoachCrmSession')||'null');
+  if(!saved?.refreshToken||Date.now()-Number(saved.createdAt||0)>30*86400000)return false;
+  const response=await fetch('/api/crm?action=auth-refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({refreshToken:saved.refreshToken})});
+  const refreshed=await response.json();if(!response.ok||!refreshed.ok)return false;
+  const next={...saved,...refreshed,createdAt:saved.createdAt,expiresAt:Date.now()+Number(refreshed.expiresIn||3600)*1000};
+  localStorage.setItem('linhCoachCrmSession',JSON.stringify(next));sessionStorage.setItem('linhCoachCrmSession',JSON.stringify(next));authToken=next.accessToken;
+  return true;
+ } catch {return false;}
+}
+async function call(path,options={},retried=false) {
  const response=await fetch(path,{...options,headers:{'Content-Type':'application/json',Authorization:`Bearer ${authToken}`,...(options.headers||{})}});
+ if(response.status===401&&!retried&&await refreshSharedSession())return call(path,options,true);
  const data=await response.json(); if(!response.ok||!data.ok)throw new Error(data.error||'Không thực hiện được'); return data;
 }
 let otpCooldownTimer;
@@ -59,6 +71,19 @@ function attemptHtml(attempt) {
  const source=grant.source==='sepay'?'Tự động · thanh toán':'Linh cấp thủ công';
  return `<tr><td><strong>${esc(user.name||'Chưa có tên')}</strong><br>${esc(user.email||'')}</td><td>${esc(profile)}<br><span class="source-tag">${source}</span><br>${esc(grant.order_code||'')}</td><td>${esc(date(attempt.submitted_at))}</td><td><div class="attempt-result">${resultItems||'Chưa có điểm'}</div></td><td><details><summary>Chi tiết câu trả lời</summary><div class="answer-list">${raw||'Không có dữ liệu câu trả lời.'}</div></details></td></tr>`;
 }
+function completedPeople() {
+ const latest=new Map();
+ for(const attempt of dashboard.attempts) {
+  const user=related(attempt.assessment_users), key=user.id||user.email||attempt.user_id;
+  if(key&&!latest.has(key))latest.set(key,{attempt,user});
+ }
+ return [...latest.values()];
+}
+function completedPersonHtml(item) {
+ const {attempt,user}=item, results=Object.values(attempt.results||{}).slice(0,5);
+ const summary=results.map((value,index)=>`${esc(value?.key||index+1)}: ${esc(value?.position??'—')}/100`).join(' · ');
+ return `<tr><td><strong>${esc(user.name||'Chưa có tên')}</strong><br>${esc(user.email||'')}</td><td>${esc(date(attempt.submitted_at))}</td><td>${summary||'Chưa có điểm'}</td><td><a class="assessment-button" href="/admin-assessment-result?id=${encodeURIComponent(attempt.id)}">Xem kết quả gần nhất</a></td></tr>`;
+}
 function renderDashboard() {
  const query=$('admin-search').value.trim().toLowerCase();
  const matches=text=>!query||String(text).toLowerCase().includes(query);
@@ -69,6 +94,8 @@ function renderDashboard() {
  $('metric-manual').textContent=dashboard.grants.filter(g=>g.source==='manual').length;
  $('grant-list').innerHTML=grants.length?`<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Người làm bài</th><th>Nguồn / mã</th><th>Trạng thái</th><th>Thời hạn</th><th>Ghi chú</th></tr></thead><tbody>${grants.map(grantHtml).join('')}</tbody></table></div>`:'<div class="admin-empty">Không tìm thấy lượt cấp quyền.</div>';
  $('attempt-list').innerHTML=attempts.length?`<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Người làm bài</th><th>Nhóm / nguồn</th><th>Thời gian nộp</th><th>5 chiều kết quả</th><th>Đáp án</th></tr></thead><tbody>${attempts.map(attemptHtml).join('')}</tbody></table></div>`:'<div class="admin-empty">Chưa có bài làm phù hợp.</div>';
+ const people=completedPeople().filter(item=>matches([item.user.name,item.user.email,item.attempt.answers?._profileType].join(' ')));
+ $('completed-list').innerHTML=people.length?`<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Người làm bài</th><th>Lần gần nhất</th><th>Kết quả</th><th></th></tr></thead><tbody>${people.map(completedPersonHtml).join('')}</tbody></table></div>`:'<div class="admin-empty">Chưa có người hoàn thành phù hợp.</div>';
 }
 async function loadDashboard() {dashboard=await call('/api/admin-assessment-grants');renderDashboard();}
 async function grant(event) {
@@ -108,7 +135,7 @@ async function restoreSharedSession() {
   if(!saved.expiresAt||Date.now()>saved.expiresAt-90000){
    const response=await fetch('/api/crm?action=auth-refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({refreshToken:saved.refreshToken})});
    const refreshed=await response.json();if(!response.ok||!refreshed.ok)throw new Error(refreshed.error||'Phiên đăng nhập hết hạn.');
-   const next={...saved,...refreshed,createdAt:saved.createdAt,expiresAt:Date.now()+50*60*1000};
+   const next={...saved,...refreshed,createdAt:saved.createdAt,expiresAt:Date.now()+Number(refreshed.expiresIn||3600)*1000};
    localStorage.setItem('linhCoachCrmSession',JSON.stringify(next));sessionStorage.setItem('linhCoachCrmSession',JSON.stringify(next));authToken=next.accessToken;
   }
   return true;
