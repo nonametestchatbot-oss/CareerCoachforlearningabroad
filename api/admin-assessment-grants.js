@@ -8,6 +8,16 @@ export default async function handler(req, res) {
     if (!adminEmails().length) return res.status(503).json({ ok: false, error: 'ADMIN_EMAILS chưa được cấu hình.' });
     await requireAdmin(req);
     if (req.method === 'GET') {
+      const attemptId = String(req.query?.attemptId || '').trim();
+      if (attemptId) {
+        if (!/^[0-9a-f-]{36}$/i.test(attemptId)) return res.status(400).json({ ok: false, error: 'Mã bài làm không hợp lệ.' });
+        const rows = await supabaseTable(`assessment_attempts?id=eq.${encodeURIComponent(attemptId)}&select=*,assessment_users(email,name),assessment_access_grants(source,order_code)&limit=1`);
+        const attempt = rows?.[0];
+        if (!attempt) return res.status(404).json({ ok: false, error: 'Không tìm thấy kết quả bài làm.' });
+        const user = Array.isArray(attempt.assessment_users) ? attempt.assessment_users[0] : attempt.assessment_users || {};
+        const grant = Array.isArray(attempt.assessment_access_grants) ? attempt.assessment_access_grants[0] : attempt.assessment_access_grants || {};
+        return res.status(200).json({ ok: true, attempt: { submittedAt: attempt.submitted_at, profileType: attempt.answers?._profileType || null, user: { name: user.name || '', email: user.email || '' }, source: grant.source || '', orderCode: grant.order_code || '', results: attempt.results || {} } });
+      }
       const grants = await supabaseTable('assessment_access_grants?select=*,assessment_users(email,name)&order=created_at.desc&limit=250');
       const attempts = await supabaseTable('assessment_attempts?select=*,assessment_users(email,name),assessment_access_grants(source,order_code)&order=submitted_at.desc&limit=500');
       return res.status(200).json({ ok: true, grants, attempts });
