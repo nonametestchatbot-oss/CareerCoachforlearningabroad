@@ -25,7 +25,7 @@ test('registration uses the OCB virtual account and the 1,000,000 VND offer', as
   };
   try {
     const res = response();
-    await register({ method: 'POST', body: { name: 'A', contact: '0900000000', email: 'a@example.com', student: 'Lớp 12', concern: 'Chọn ngành' } }, res);
+    await register({ method: 'POST', body: { name: 'A', contact: '0900000000', email: 'a@example.com', studentName: 'Học sinh A', student: 'Lớp 12', concern: 'Chọn ngành' } }, res);
     assert.equal(res.statusCode, 200);
     assert.equal(res.body.amount, 1000000);
     assert.equal(res.body.accountNumber, 'VQRQ12345678');
