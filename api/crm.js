@@ -1,5 +1,5 @@
-import { sendCrmOtp, verifyCrmOtp, requireCrmAdmin } from '../lib/crm-auth.js';
-import { supabaseTable, supabaseGetUser } from '../lib/supabase.js';
+import { sendCrmOtp, verifyCrmOtp, requireCrmAdmin, isCrmAdmin } from '../lib/crm-auth.js';
+import { supabaseTable, supabaseGetUser, supabaseConfig } from '../lib/supabase.js';
 import { listLeads, upsertLead, updateLead, addLeadActivity, getLeadProfile, addLeadEmailHistory } from '../lib/crm.js';
 import { getNurtureProfile, updateNurtureConsent, queueNurtureForLead, updateNurtureDraft, getNurtureTemplates, saveNurtureTemplate } from '../lib/nurture.js';
 
