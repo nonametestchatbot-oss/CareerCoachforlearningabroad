@@ -22,7 +22,7 @@ function cards(results) {
   if(!session?.accessToken||!session?.refreshToken)throw new Error('Vui lòng đăng nhập lại Workspace quản trị.');
   const id=new URLSearchParams(location.search).get('id');
   if(!id)throw new Error('Thiếu mã kết quả.');
-  const request=()=>fetch(`/api/admin-assessment-result?id=${encodeURIComponent(id)}`,{cache:'no-store',headers:{Authorization:`Bearer ${session.accessToken}`}});
+  const request=()=>fetch(`/api/admin-assessment-grants?attemptId=${encodeURIComponent(id)}`,{cache:'no-store',headers:{Authorization:`Bearer ${session.accessToken}`}});
   let response=await request();
   if(response.status===401&&await refresh())response=await request();
   const data=await response.json();
