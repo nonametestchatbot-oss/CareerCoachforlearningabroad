@@ -111,8 +111,19 @@ async function restoreSharedSession() {
    const next={...saved,...refreshed,createdAt:saved.createdAt,expiresAt:Date.now()+50*60*1000};
    localStorage.setItem('linhCoachCrmSession',JSON.stringify(next));sessionStorage.setItem('linhCoachCrmSession',JSON.stringify(next));authToken=next.accessToken;
   }
-  window.location.replace('/admin');return true;
+  return true;
  } catch(error) {authToken='';localStorage.removeItem('linhCoachCrmSession');sessionStorage.removeItem('linhCoachCrmSession');status('login-status','Phiên đăng nhập cũ đã hết hạn hoặc không thể gia hạn. Hãy yêu cầu email đăng nhập mới.',true);return false;}
 }
 $('login-form').addEventListener('submit',requestOtp);$('verify-form').addEventListener('submit',verifyOtp);$('grant-form').addEventListener('submit',grant);$('admin-search').addEventListener('input',renderDashboard);
-(async()=>{if(!await consumeMagicLink())await restoreSharedSession();})();
+(async()=>{
+ if(await consumeMagicLink())return;
+ if(!await restoreSharedSession())return;
+ $('login-card').hidden=true;
+ $('panel').hidden=false;
+ try { await loadDashboard(); }
+ catch(error) {
+  $('panel').hidden=true;
+  $('login-card').hidden=false;
+  status('login-status',error.message||'Không tải được dữ liệu quản trị.',true);
+ }
+})();
