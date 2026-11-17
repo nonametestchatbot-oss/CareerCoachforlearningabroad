@@ -10,6 +10,7 @@ const emailStep = document.getElementById('email-step');
 const otpStep = document.getElementById('otp-step');
 const emailInput = document.getElementById('email');
 const codeInput = document.getElementById('order-code');
+const accessCodeInput = document.getElementById('access-code');
 const otpInput = document.getElementById('otp');
 const emailLabel = document.getElementById('email-label');
 const logoutButton = document.getElementById('logout-button');
@@ -27,6 +28,7 @@ let accessToken = sessionStorage.getItem('linhCoachAssessmentAuth') || '';
 let grant = null;
 let pendingEmail = '';
 let pendingCode = '';
+let pendingAccessCode = '';
 let pageIndex = 0;
 let profileType = '';
 const choices = [['1','Hoàn toàn không giống tôi'],['2','Khá không giống tôi'],['3','Hơi không giống tôi'],['4','Ở giữa / tùy hoàn cảnh'],['5','Hơi giống tôi'],['6','Khá giống tôi'],['7','Rất giống tôi']];
@@ -89,12 +91,17 @@ async function requestOtp(event) {
   event.preventDefault();
   pendingEmail = emailInput.value.trim().toLowerCase();
   pendingCode = codeInput.value.trim().toUpperCase();
+  pendingAccessCode = accessCodeInput.value.trim().toUpperCase();
   const button = emailForm.querySelector('button');
   button.disabled = true;
   try {
-    const response = await fetch('/api/assessment-auth-request', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:pendingEmail,code:pendingCode})});
+    const response = await fetch('/api/assessment-auth-request', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:pendingEmail,code:pendingCode,accessCode:pendingAccessCode})});
     const data = await response.json();
     if (!response.ok || !data.ok) throw new Error(data.error);
+    if (data.accessCodeSent) {
+      setStatus(accessStatus, data.message || 'Mã đăng nhập đã được gửi lại. Hãy kiểm tra email.');
+      return;
+    }
     if (data.accessToken && data.grant) {
       accessToken = data.accessToken;
       sessionStorage.setItem('linhCoachAssessmentAuth', accessToken);
@@ -125,6 +132,18 @@ async function verifyOtp(event) {
     const response = await fetch('/api/assessment-auth-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:pendingEmail,code:pendingCode,otp:otpInput.value.trim()})});
     const data = await response.json();
     if (!response.ok || !data.ok) throw new Error(data.error);
+    if (data.grantCreated) {
+      sessionStorage.removeItem('linhCoachAssessmentAuth');
+      accessToken = '';
+      grant = null;
+      otpStep.hidden = true;
+      emailStep.hidden = false;
+      otpInput.value = '';
+      accessCodeInput.value = '';
+      codeInput.value = '';
+      setStatus(accessStatus, 'Lượt làm bài đã được cấp. Mã đăng nhập riêng đã gửi đến email của bạn. Nhập email và mã đó để bắt đầu.');
+      return;
+    }
     accessToken = data.accessToken; sessionStorage.setItem('linhCoachAssessmentAuth',accessToken); grant = data.grant;
     emailStep.hidden = true; otpStep.hidden = true;
     if (!grant) { setStatus(accessStatus,'Email quản trị đã xác thực. Hãy dùng trang quản trị để cấp lượt làm bài.'); return; }
