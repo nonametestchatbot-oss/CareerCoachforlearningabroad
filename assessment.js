@@ -102,6 +102,18 @@ async function requestOtp(event) {
       setStatus(accessStatus, data.message || 'Mã đăng nhập đã được gửi lại. Hãy kiểm tra email.');
       return;
     }
+    if (data.grantCreated) {
+      sessionStorage.removeItem('linhCoachAssessmentAuth');
+      accessToken = '';
+      grant = null;
+      emailStep.hidden = false;
+      otpStep.hidden = true;
+      otpInput.value = '';
+      accessCodeInput.value = '';
+      if (data.emailSent) codeInput.value = '';
+      setStatus(accessStatus, data.message || 'Mã đăng nhập đã gửi qua email.', !data.emailSent);
+      return;
+    }
     if (data.accessToken && data.grant) {
       accessToken = data.accessToken;
       sessionStorage.setItem('linhCoachAssessmentAuth', accessToken);

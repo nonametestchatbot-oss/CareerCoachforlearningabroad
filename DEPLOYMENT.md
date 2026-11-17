@@ -4,7 +4,7 @@
 
 1. Ba mẹ vào landing page, điền thêm email nhận quyền truy cập và thanh toán QR như hiện tại.
 2. SePay xác nhận giao dịch theo mã `LC########`; mã này được dùng để cấp đúng một lượt cho email đã xác thực.
-3. Người dùng vào `/test?code=LC########`, xác minh email thanh toán bằng OTP một lần. Sau khi cấp quyền, hệ thống gửi mã đăng nhập bài test riêng qua email; người dùng phải nhập email và mã này để bắt đầu hoặc mở lại kết quả.
+3. Người dùng vào `/test?code=LC########` và nhập email cùng mã đăng ký LC. Khi SePay xác nhận thanh toán, hệ thống cấp lượt và gửi một email chứa mã đăng nhập bài test. Người làm bài đăng nhập bằng email + mã này, không cần OTP Supabase; có thể dùng lại trong 30 ngày để mở kết quả.
 4. Người dùng trả lời 40 câu hỏi, mỗi câu theo thang 1–7. Một grant chỉ được nộp một lần.
 5. Hệ thống lưu kết quả trong Supabase, hiển thị bản đồ 5 chiều, cờ/tên quốc gia và 3 quốc gia gần nhất.
 6. Grant và kết quả hết quyền xem sau 30 ngày. Quản trị viên có thể cấp grant mới cho cùng email để làm lại.
