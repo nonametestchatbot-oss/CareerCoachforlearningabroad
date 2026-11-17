@@ -1,5 +1,7 @@
 import { createGrant, findUserByEmail } from '../lib/assessment-access.js';
 import { adminEmails, bearerToken, normalizeEmail, requireAdmin, supabaseTable } from '../lib/supabase.js';
+import { assessmentGrantCode } from '../lib/tokens.js';
+import { sendAssessmentAccessEmail } from '../lib/assessment-email.js';
 
 function bodyOf(req) { return typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); }
 
@@ -36,7 +38,15 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
     const grant = await createGrant({ userId: user.id, source: 'manual', showPreviousResult: Boolean(body.showPreviousResult), notes: String(body.notes || 'Cấp thủ công bởi quản trị viên').slice(0, 500) });
-    return res.status(200).json({ ok: true, grant });
+    if (!grant) return res.status(500).json({ ok: false, error: 'Chưa tạo được lượt làm bài.' });
+    try {
+      const accessCode = assessmentGrantCode(grant, email);
+      await sendAssessmentAccessEmail({ email, name: user.name || name, grant, accessCode });
+    } catch (emailError) {
+      console.error('Assessment access email failed:', emailError.message);
+      return res.status(502).json({ ok: false, grantCreated: true, error: 'Đã tạo lượt nhưng chưa gửi được email mã đăng nhập. Hãy cấp lại lượt để gửi mã mới hoặc kiểm tra cấu hình email.' });
+    }
+    return res.status(200).json({ ok: true, grant, emailSent: true });
   } catch (error) {
     return res.status(error.message === 'Admin access required' ? 403 : 401).json({ ok: false, error: error.message || 'Không thực hiện được.' });
   }
