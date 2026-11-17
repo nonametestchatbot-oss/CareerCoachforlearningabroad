@@ -24,7 +24,7 @@
 - Mở `/admin-assessment.html` bằng email nằm trong `ADMIN_EMAILS`.
 - Nhận OTP qua email và đăng nhập.
 - Nhập email khách, chọn có cho phép hiện lần trước hay không, rồi bấm cấp lượt.
-- Mỗi lần cấp lại sẽ tạo một grant mới có hạn 30 ngày; grant cũ vẫn giữ lịch sử nhưng không thể dùng lại.
+- Hệ thống gửi mã đăng nhập riêng đến email đó. Người nhận cần email + mã này để làm bài và dùng lại trong 30 ngày để mở kết quả gần nhất.
 
 ## Biến môi trường trên Vercel
 
