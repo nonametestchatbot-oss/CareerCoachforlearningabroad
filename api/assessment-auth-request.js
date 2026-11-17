@@ -42,7 +42,7 @@ export default async function handler(req, res) {
           return res.status(403).json({ ok: false, error: 'Mã không đúng hoặc lượt làm bài đã hết hạn.' });
         }
         const expiresAt = Math.floor(new Date(currentGrant.expires_at).getTime() / 1000);
-        const accessToken = signToken({ type: 'assessment_access', email, userId: identity.id, authUserId: identity.auth_user_id, grantId: currentGrant.id, exp: expiresAt });
+        const accessToken = signToken({ type: 'assessment_access_v2', email, userId: identity.id, authUserId: identity.auth_user_id, grantId: currentGrant.id, exp: expiresAt });
         return res.status(200).json({
           ok: true,
           accessToken,
