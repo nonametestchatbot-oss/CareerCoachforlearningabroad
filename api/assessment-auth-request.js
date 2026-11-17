@@ -2,7 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { readPaymentStatus, validateOrderCode } from '../lib/payment.js';
 import { ensureAssessmentUser, findUserByEmail, grantForUser } from '../lib/assessment-access.js';
 import { adminEmails, normalizeEmail, supabaseAuthOtp } from '../lib/supabase.js';
-import { signToken } from '../lib/tokens.js';
+import { assessmentGrantCode, signToken, verifyAssessmentGrantCode } from '../lib/tokens.js';
+import { sendAssessmentAccessEmail } from '../lib/assessment-email.js';
 
 function providerError(error) {
   const raw = String(error?.message || '');
@@ -34,17 +35,30 @@ export default async function handler(req, res) {
     const user = await findUserByEmail(email);
     const activeGrant = user ? await grantForUser(user.id, true) : null;
     if (activeGrant) {
-      const identity = await ensureAssessmentUser({ id: user.auth_user_id || randomUUID(), email });
-      const currentGrant = await grantForUser(identity.id, true);
-      if (!currentGrant || currentGrant.id !== activeGrant.id) return res.status(403).json({ ok: false, error: 'Lượt làm bài không còn hiệu lực. Hãy liên hệ Linh để được hỗ trợ.' });
-      const expiresAt = Math.floor(new Date(currentGrant.expires_at).getTime() / 1000);
-      const accessToken = signToken({ type: 'assessment_access', email, userId: identity.id, authUserId: identity.auth_user_id, grantId: currentGrant.id, exp: expiresAt });
-      return res.status(200).json({
-        ok: true,
-        accessToken,
-        user: { email },
-        grant: { id: currentGrant.id, expiresAt: currentGrant.expires_at, attemptUsed: Boolean(currentGrant.attempt_used), showPreviousResult: currentGrant.show_previous_result }
-      });
+      if (verifyAssessmentGrantCode(activeGrant, email, body.accessCode)) {
+        const identity = await ensureAssessmentUser({ id: user.auth_user_id || randomUUID(), email });
+        const currentGrant = await grantForUser(identity.id, true);
+        if (!currentGrant || currentGrant.id !== activeGrant.id || !verifyAssessmentGrantCode(currentGrant, email, body.accessCode)) {
+          return res.status(403).json({ ok: false, error: 'Mã không đúng hoặc lượt làm bài đã hết hạn.' });
+        }
+        const expiresAt = Math.floor(new Date(currentGrant.expires_at).getTime() / 1000);
+        const accessToken = signToken({ type: 'assessment_access_v2', email, userId: identity.id, authUserId: identity.auth_user_id, grantId: currentGrant.id, exp: expiresAt });
+        return res.status(200).json({
+          ok: true,
+          accessToken,
+          user: { email },
+          grant: { id: currentGrant.id, expiresAt: currentGrant.expires_at, attemptUsed: Boolean(currentGrant.attempt_used), showPreviousResult: currentGrant.show_previous_result }
+        });
+      }
+      if (code && activeGrant.order_code === code && validateOrderCode(code)) {
+        const payment = await readPaymentStatus(code);
+        if (payment.status === 'Paid') {
+          const accessCode = assessmentGrantCode(activeGrant, email);
+          await sendAssessmentAccessEmail({ email, name: user.name, grant: activeGrant, accessCode });
+          return res.status(200).json({ ok: true, accessCodeSent: true, message: 'Đã gửi lại mã đăng nhập đến email đã cấp quyền.' });
+        }
+      }
+      return res.status(401).json({ ok: false, error: 'Email hoặc mã đăng nhập chưa đúng. Hãy dùng mã trong email cấp quyền.' });
     }
 
     const isAdmin = adminEmails().includes(email);

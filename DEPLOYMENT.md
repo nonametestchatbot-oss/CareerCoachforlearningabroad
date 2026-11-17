@@ -4,7 +4,7 @@
 
 1. Ba mẹ vào landing page, điền thêm email nhận quyền truy cập và thanh toán QR như hiện tại.
 2. SePay xác nhận giao dịch theo mã `LC########`; mã này được dùng để cấp đúng một lượt cho email đã xác thực.
-3. Người dùng vào `/test?code=LC########`, nhập email, nhận mã OTP 6 số và mở bài test.
+3. Người dùng vào `/test?code=LC########`, xác minh email thanh toán bằng OTP một lần. Sau khi cấp quyền, hệ thống gửi mã đăng nhập bài test riêng qua email; người dùng phải nhập email và mã này để bắt đầu hoặc mở lại kết quả.
 4. Người dùng trả lời 40 câu hỏi, mỗi câu theo thang 1–7. Một grant chỉ được nộp một lần.
 5. Hệ thống lưu kết quả trong Supabase, hiển thị bản đồ 5 chiều, cờ/tên quốc gia và 3 quốc gia gần nhất.
 6. Grant và kết quả hết quyền xem sau 30 ngày. Quản trị viên có thể cấp grant mới cho cùng email để làm lại.
@@ -24,7 +24,7 @@
 - Mở `/admin-assessment.html` bằng email nằm trong `ADMIN_EMAILS`.
 - Nhận OTP qua email và đăng nhập.
 - Nhập email khách, chọn có cho phép hiện lần trước hay không, rồi bấm cấp lượt.
-- Mỗi lần cấp lại sẽ tạo một grant mới có hạn 30 ngày; grant cũ vẫn giữ lịch sử nhưng không thể dùng lại.
+- Hệ thống gửi mã đăng nhập riêng đến email đó. Người nhận cần email + mã này để làm bài và dùng lại trong 30 ngày để mở kết quả gần nhất.
 
 ## Biến môi trường trên Vercel
 
@@ -63,7 +63,7 @@ CRM lưu lead theo email hoặc số điện thoại đã chuẩn hóa. Khi gử
 ## Các URL sau khi triển khai
 
 - `/`: landing page
-- `/test?code=LC########`: màn hình xác thực email và bài test sau thanh toán
+- `/test?code=LC########`: xác minh thanh toán lần đầu; email đã được cấp quyền đăng nhập bằng email + mã trong thư cấp quyền
 - `/admin-assessment.html`: trang cấp quyền thủ công
 - `/result?id=...`: kết quả thuộc về email đã xác thực, có thời hạn
 

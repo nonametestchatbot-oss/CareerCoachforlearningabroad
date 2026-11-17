@@ -116,6 +116,6 @@ loadResult().catch(() => {
   const message = document.getElementById('result-error-message');
   heading.textContent = hasIdentifier ? 'Chưa mở được kết quả.' : 'Mở đường dẫn kết quả riêng của bạn.';
   message.textContent = hasIdentifier
-    ? 'Phiên xác thực có thể đã hết hiệu lực hoặc liên kết không còn hợp lệ. Hãy mở bài test, xác thực bằng email đã đăng ký và thử lại. Nếu vẫn gặp lỗi, liên hệ Linh.'
+    ? 'Mã đăng nhập có thể sai hoặc quyền đã hết hạn. Hãy mở bài test, nhập đúng email và mã trong email cấp quyền rồi thử lại. Nếu vẫn gặp lỗi, liên hệ Linh.'
     : 'Trang này cần đường dẫn kết quả riêng được tạo sau khi hoàn thành bài test. Hãy mở bài test hoặc liên hệ Linh nếu bạn chưa nhận được đường dẫn.';
 });

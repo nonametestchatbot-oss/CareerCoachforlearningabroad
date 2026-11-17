@@ -100,7 +100,7 @@ function renderDashboard() {
 async function loadDashboard() {dashboard=await call('/api/admin-assessment-grants');renderDashboard();}
 async function grant(event) {
  event.preventDefault();
- try {await call('/api/admin-assessment-grants',{method:'POST',body:JSON.stringify({email:$('grant-email').value,name:$('grant-name').value,notes:$('grant-notes').value,showPreviousResult:$('show-previous').checked})});status('grant-status','Đã cấp lượt làm bài trong 30 ngày.');event.target.reset();await loadDashboard();}
+ try {const data=await call('/api/admin-assessment-grants',{method:'POST',body:JSON.stringify({email:$('grant-email').value,name:$('grant-name').value,notes:$('grant-notes').value,showPreviousResult:$('show-previous').checked})});status('grant-status',`Đã cấp lượt 30 ngày và gửi mã đăng nhập đến ${data.grant?.assessment_users?.email||$('grant-email').value}.`);event.target.reset();await loadDashboard();}
  catch(error){status('grant-status',error.message,true);}
 }
 async function consumeMagicLink() {

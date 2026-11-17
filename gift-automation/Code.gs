@@ -12,8 +12,43 @@ function doPost(e) {
   const secret = props.getProperty('GIFT_AUTOMATION_SECRET') || '';
   if (!secret || !constantTimeEqual_(input.secret || input['x-gift-secret'], secret)) return json_({ok:false,error:'Unauthorized'});
   if (input.action === 'deliverGift') return deliverGift_(input);
+  if (input.action === 'sendAssessmentAccess') return sendAssessmentAccess_(input);
   return json_({ok:false,error:'Unknown action'});
 }
+function sendAssessmentAccess_(input) {
+  const email = String(input.email || '').trim().toLowerCase();
+  const name = String(input.name || 'bạn').trim() || 'bạn';
+  const requestId = String(input.requestId || '').trim();
+  const accessCode = String(input.accessCode || '').trim().toUpperCase();
+  const expiresAt = new Date(input.expiresAt);
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+      || !/^[0-9a-f-]{36}$/i.test(requestId)
+      || !/^[A-F0-9]{4}(?:-[A-F0-9]{4}){3}$/.test(accessCode)
+      || !Number.isFinite(expiresAt.getTime())) {
+    return json_({ok:false,error:'Thông tin cấp quyền không hợp lệ.'});
+  }
+  const properties = PropertiesService.getScriptProperties();
+  const propertyKey = 'assessment_access_' + requestId;
+  if (properties.getProperty(propertyKey)) return json_({ok:true,duplicate:true});
+  try {
+    const subject = 'Mã đăng nhập bài test của bạn | Linh Coach';
+    const expiryLabel = Utilities.formatDate(expiresAt, Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm');
+    const testUrl = GIFT_SITE_URL + '/test';
+    const body = 'Chào ' + name + ',\n\n'
+      + 'Linh Coach đã cấp quyền làm bài kiểm chứng hướng đi cho email: ' + email + '.\n\n'
+      + 'MÃ ĐĂNG NHẬP BÀI TEST: ' + accessCode + '\n\n'
+      + 'Cách vào bài test:\n1. Mở ' + testUrl + '\n2. Nhập đúng email này và mã đăng nhập ở trên.\n\n'
+      + 'Mã có hiệu lực đến ' + expiryLabel + ' (30 ngày kể từ ngày cấp). Sau khi hoàn thành, bạn có thể dùng lại đúng email và mã này để xem kết quả gần nhất đến hạn trên.\n\n'
+      + 'Nếu không yêu cầu quyền truy cập này, vui lòng bỏ qua email và liên hệ Linh Coach.\n\n'
+      + 'Trân trọng,\nLinh Coach';
+    MailApp.sendEmail({to:email,subject:subject,body:body,name:'Linh Coach'});
+    properties.setProperty(propertyKey, new Date().toISOString());
+    return json_({ok:true});
+  } catch (error) {
+    return json_({ok:false,error:'Google chưa xác nhận gửi email mã đăng nhập.'});
+  }
+}
+
 function deliverGift_(input) {
   const email = String(input.email || '').trim().toLowerCase();
   const name = String(input.name || 'bạn').trim() || 'bạn';
