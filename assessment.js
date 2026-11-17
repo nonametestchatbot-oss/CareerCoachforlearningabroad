@@ -140,8 +140,8 @@ async function verifyOtp(event) {
       emailStep.hidden = false;
       otpInput.value = '';
       accessCodeInput.value = '';
-      codeInput.value = '';
-      setStatus(accessStatus, 'Lượt làm bài đã được cấp. Mã đăng nhập riêng đã gửi đến email của bạn. Nhập email và mã đó để bắt đầu.');
+      if (data.emailSent) codeInput.value = '';
+      setStatus(accessStatus, data.message || 'Lượt đã được cấp. Hãy nhập email và mã đăng nhập từ email để tiếp tục.', !data.emailSent);
       return;
     }
     accessToken = data.accessToken; sessionStorage.setItem('linhCoachAssessmentAuth',accessToken); grant = data.grant;
