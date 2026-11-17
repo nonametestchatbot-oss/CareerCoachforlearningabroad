@@ -21,8 +21,21 @@ export default async function handler(req, res) {
       else if (existing.user_id !== user.id) return res.status(403).json({ ok: false, error: 'Mã đăng ký đã được liên kết với email khác.' });
       if (!paidGrant) throw new Error('Không tạo được lượt làm bài.');
       const accessCode = assessmentGrantCode(paidGrant, email);
-      await sendAssessmentAccessEmail({ email, name: user.name, grant: paidGrant, accessCode });
-      return res.status(200).json({ ok: true, grantCreated: true, message: 'Lượt làm bài đã được cấp. Mã đăng nhập đã gửi đến email của bạn.' });
+      let emailSent = true;
+      try {
+        await sendAssessmentAccessEmail({ email, name: user.name, grant: paidGrant, accessCode });
+      } catch (emailError) {
+        emailSent = false;
+        console.error('Assessment access email failed:', emailError.message);
+      }
+      return res.status(200).json({
+        ok: true,
+        grantCreated: true,
+        emailSent,
+        message: emailSent
+          ? 'Lượt làm bài đã được cấp. Mã đăng nhập đã gửi đến email của bạn.'
+          : 'Lượt đã được cấp nhưng email chưa gửi được. Hãy quay lại, nhập email và mã đăng ký LC để gửi lại mã đăng nhập.'
+      });
     }
     const grant = await grantForUser(user.id, true);
     if (!grant && !adminEmails().includes(email)) return res.status(403).json({ ok: false, error: 'Email này chưa có lượt làm bài còn hiệu lực.' });
