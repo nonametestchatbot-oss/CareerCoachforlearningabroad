@@ -14,7 +14,7 @@ Nếu khách đồng ý nurture, hệ thống xếp ba email cách 1, 4 và 9 ng
 2. Chọn Deploy > New deployment > Web app. Execute as: Me. Who has access: Anyone. Deploy, cấp quyền Drive, Gmail và UrlFetchApp khi Google hỏi. Sao chép URL Web app kết thúc bằng /exec. Chạy hàm installNurtureTrigger một lần trong Apps Script và chấp thuận quyền tạo trigger.
 3. Trong Vercel project CareerCoachforlearningabroad > Settings > Environment Variables, thêm GIFT_APPS_SCRIPT_URL bằng URL /exec và GIFT_AUTOMATION_SECRET bằng đúng chuỗi đã lưu trong Script properties. Chọn Production, Preview và Development nếu muốn dùng ở cả ba môi trường; sau đó redeploy Production.
 
-## Đưa vào menu WordPress
+## Gửi mã đăng nhập bài test\n\nAPI cấp quyền bài test dùng cùng Web App này để gửi mã email qua Gmail. Dùng bản `gift-automation/Code.gs` mới nhất trong repository khi cập nhật Apps Script, sau đó tạo một deployment version mới của Web App (giữ nguyên URL `/exec`, Script Property `GIFT_AUTOMATION_SECRET` và quyền Gmail). Không cần thay đổi biến `GIFT_APPS_SCRIPT_URL` hoặc `GIFT_AUTOMATION_SECRET` trên Vercel nếu chúng đã được cấu hình. Mỗi email mã được chống gửi trùng theo grant ID.\n\n## Đưa vào menu WordPress
 
 Bản này tạo trang tại https://duhocbenvung.linhcoach-eqstrength.com/qua-tang và thêm mục Quà tặng vào menu của trang Vercel. Menu WordPress ở https://linhcoach-eqstrength.com là một hệ thống riêng. Khi trang đã được publish ở Vercel, thêm một mục menu WordPress tên Quà tặng với URL https://duhocbenvung.linhcoach-eqstrength.com/qua-tang.
 
