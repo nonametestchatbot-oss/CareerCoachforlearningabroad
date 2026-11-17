@@ -1,6 +1,8 @@
 import { readPaymentStatus, validateOrderCode } from '../lib/payment.js';
 import { createGrant, ensureAssessmentUser, findGrantByOrderCode, grantForUser } from '../lib/assessment-access.js';
 import { adminEmails, normalizeEmail, supabaseVerifyOtp } from '../lib/supabase.js';
+import { assessmentGrantCode } from '../lib/tokens.js';
+import { sendAssessmentAccessEmail } from '../lib/assessment-email.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -14,8 +16,13 @@ export default async function handler(req, res) {
       const payment = await readPaymentStatus(code);
       if (payment.status !== 'Paid') return res.status(402).json({ ok: false, error: 'Khoản thanh toán chưa được xác nhận.' });
       const existing = await findGrantByOrderCode(code);
-      if (!existing) await createGrant({ userId: user.id, source: 'sepay', orderCode: code, notes: 'Cấp quyền tự động sau khi SePay xác nhận thanh toán.' });
+      let paidGrant = existing;
+      if (!existing) paidGrant = await createGrant({ userId: user.id, source: 'sepay', orderCode: code, notes: 'Cấp quyền tự động sau khi SePay xác nhận thanh toán.' });
       else if (existing.user_id !== user.id) return res.status(403).json({ ok: false, error: 'Mã đăng ký đã được liên kết với email khác.' });
+      if (!paidGrant) throw new Error('Không tạo được lượt làm bài.');
+      const accessCode = assessmentGrantCode(paidGrant, email);
+      await sendAssessmentAccessEmail({ email, name: user.name, grant: paidGrant, accessCode });
+      return res.status(200).json({ ok: true, grantCreated: true, message: 'Lượt làm bài đã được cấp. Mã đăng nhập đã gửi đến email của bạn.' });
     }
     const grant = await grantForUser(user.id, true);
     if (!grant && !adminEmails().includes(email)) return res.status(403).json({ ok: false, error: 'Email này chưa có lượt làm bài còn hiệu lực.' });
