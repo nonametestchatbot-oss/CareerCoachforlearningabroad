@@ -1,11 +1,8 @@
 let COUNTRY_PROFILES = [];
 try {
-  const response = await fetch('/api/country-profiles', { cache: 'no-store' });
-  if (!response.ok) throw new Error('Country profiles unavailable');
-  const data = await response.json();
-  COUNTRY_PROFILES = data.profiles || [];
-} catch {
   ({ COUNTRY_PROFILES = [] } = await import('/country-profiles.js'));
+} catch {
+  // Keep the personal result usable if reference data is unavailable.
 }
 
 const chart = document.getElementById('result-chart');
@@ -99,6 +96,7 @@ async function loadResult() {
   const data = await response.json();
   if (!response.ok || !data.ok) throw new Error(data.error || 'Result unavailable');
   userResults = data.results;
+  if (Array.isArray(data.countryProfiles) && data.countryProfiles.length) COUNTRY_PROFILES = data.countryProfiles;
   expiry.textContent = `Đường dẫn kết quả có hiệu lực đến ${formatExpiry(data.expiresAt)}.`;
   if (data.profileType && profileTypeBadge) { profileTypeBadge.hidden = false; profileTypeBadge.textContent = data.profileType === 'student' ? 'Nhóm: học sinh / sinh viên' : 'Nhóm: người đi làm'; }
   chart.innerHTML = userResults.map(renderCard).join('');
