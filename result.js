@@ -1,8 +1,11 @@
 let COUNTRY_PROFILES = [];
 try {
-  ({ COUNTRY_PROFILES = [] } = await import('/country-profiles.js'));
+  const response = await fetch('/api/country-profiles', { cache: 'no-store' });
+  if (!response.ok) throw new Error('Country profiles unavailable');
+  const data = await response.json();
+  COUNTRY_PROFILES = data.profiles || [];
 } catch {
-  // Keep the personal result usable if optional country reference data is unavailable.
+  ({ COUNTRY_PROFILES = [] } = await import('/country-profiles.js'));
 }
 
 const chart = document.getElementById('result-chart');
@@ -59,7 +62,7 @@ function renderCountryOptions() {
   }
   countrySelect.innerHTML = '<option value="">Chọn một nước để so sánh</option>' + COUNTRY_PROFILES.map(profile => `<option value="${escapeHtml(profile.id)}">${escapeHtml(countryLabel(profile))}</option>`).join('');
   countrySelect.disabled = false;
-  countryStatus.textContent = 'Hồ sơ quốc gia là mốc minh họa do biên tập, không phải số liệu khảo sát hay điểm chuẩn. Chúng không mô tả mọi cá nhân trong một nước.';
+  countryStatus.textContent = 'Điểm quốc gia được số hóa từ 36 biểu đồ tham chiếu do Linh cung cấp. Đây là mốc đối chiếu xu hướng, không mô tả mọi cá nhân trong một nước.';
   renderCountryComparison();
 }
 
@@ -119,3 +122,4 @@ loadResult().catch(() => {
     ? 'Mã đăng nhập có thể sai hoặc quyền đã hết hạn. Hãy mở bài test, nhập đúng email và mã trong email cấp quyền rồi thử lại. Nếu vẫn gặp lỗi, liên hệ Linh.'
     : 'Trang này cần đường dẫn kết quả riêng được tạo sau khi hoàn thành bài test. Hãy mở bài test hoặc liên hệ Linh nếu bạn chưa nhận được đường dẫn.';
 });
+
