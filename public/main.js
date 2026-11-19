@@ -1,11 +1,3 @@
-// Supabase can fall back to the project Site URL after a magic-link callback.
-(function forwardCrmMagicLink() {
-  const hash = window.location.hash || '';
-  if (hash.includes('access_token=') && hash.includes('refresh_token=')) {
-    window.location.assign('/admin/crm' + hash);
-  }
-})();
-
 const form = document.getElementById('lead-form');
 const formStatus = document.getElementById('form-status');
 const paymentPanel = document.getElementById('payment-panel');
@@ -19,10 +11,10 @@ let paymentTimer;
 if (!document.getElementById('student-name')) {
   const nameLabel = document.createElement('label');
   nameLabel.htmlFor = 'student-name';
-  nameLabel.textContent = 'Họ và tên học sinh *';
+  nameLabel.textContent = 'Tên học sinh/người làm test *';
   const nameInput = document.createElement('input');
-  nameInput.id = 'student-name'; nameInput.name = 'studentName'; nameInput.required = true;
-  nameInput.maxLength = 120; nameInput.placeholder = 'Tên học sinh sẽ làm bài kiểm chứng';
+  nameInput.id = 'student-name'; nameInput.name = 'studentName'; nameInput.autocomplete = 'given-name';
+  nameInput.required = true; nameInput.maxLength = 100; nameInput.placeholder = 'Tên người sẽ làm bài test';
   const studentLabel = document.getElementById('student')?.previousElementSibling;
   (studentLabel || form.querySelector('button[type="submit"]')).before(nameLabel, nameInput);
 }
@@ -69,12 +61,12 @@ async function checkPayment(code) {
     if (!response.ok || !result.ok) throw new Error('Status unavailable');
     if (result.status === 'Paid') {
       clearInterval(paymentTimer);
-      paymentStatus.textContent = 'Đã xác nhận thanh toán. Hãy mở bài kiểm chứng và hoàn thành trước khi chọn lịch tư vấn.';
+      paymentStatus.textContent = 'Đã xác nhận thanh toán. Ba mẹ có thể gửi đường dẫn bài test này cho con.';
       steps[1].classList.remove('active');
       steps[2].classList.add('active');
       bookingButton.hidden = false;
       bookingButton.href = '/test?code=' + encodeURIComponent(code);
-      bookingButton.textContent = 'Bắt đầu bài kiểm chứng cho con →';
+      bookingButton.textContent = 'Mở bài test cho con →';
     } else if (result.status === 'Underpaid') {
       paymentStatus.textContent = 'Số tiền nhận được chưa đủ 1.000.000đ. Vui lòng liên hệ Linh để được hỗ trợ trước khi chuyển thêm.';
     } else {
@@ -97,8 +89,14 @@ form.addEventListener('submit', async event => {
     name: String(data.get('name') || ''),
     contact: String(data.get('phone') || ''),
     email: String(data.get('email') || ''),
-    student: `${String(data.get('student_name') || '').trim()} — ${String(data.get('student') || '').trim()}`,
-    concern: String(data.get('concern') || '')
+    studentName: String(data.get('studentName') || ''),
+    student: String(data.get('student') || ''),
+    concern: String(data.get('concern') || ''),
+    source: new URLSearchParams(window.location.search).get('utm_source') || document.referrer || 'landing-page',
+    landingPageUrl: window.location.href,
+    utm: JSON.stringify(Object.fromEntries(['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']
+      .map(key => [key, new URLSearchParams(window.location.search).get(key) || ''])
+      .filter(([, value]) => value)))
   });
   try {
     const response = await fetch('/api/register', {
@@ -124,4 +122,25 @@ try {
   if (savedOrder?.orderCode && savedOrder?.qrUrl) showPayment(savedOrder);
 } catch {
   sessionStorage.removeItem('linhCoachConsultationOrder');
+}
+
+
+
+// Keep the primary navigation available on mobile and make it keyboard accessible.
+const menuToggle = document.getElementById('menu-toggle');
+const mainNavigation = document.getElementById('main-navigation');
+if (menuToggle && mainNavigation) {
+  const closeMenu = () => {
+    menuToggle.setAttribute('aria-expanded', 'false');
+    mainNavigation.classList.remove('is-open');
+  };
+  menuToggle.addEventListener('click', () => {
+    const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+    menuToggle.setAttribute('aria-expanded', String(!isOpen));
+    mainNavigation.classList.toggle('is-open', !isOpen);
+  });
+  mainNavigation.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeMenu();
+  });
 }
