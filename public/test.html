@@ -2,25 +2,84 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex,nofollow,noarchive"><meta name="description" content="Bài kiểm chứng hướng đi dành cho người đã được cấp quyền.">
-  <title>Bài kiểm chứng hướng đi | Linh Coach</title>
+  <meta name="robots" content="noindex,nofollow,noarchive"><meta name="description" content="Bài test giúp du học sinh hiểu phản xạ của mình và chuẩn bị hòa nhập mà không đánh mất bản thân.">
+  <title>Bài test hòa nhập du học | Linh Coach</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/assessment.css?v=20261102">
-  <style>.access-card{max-width:620px;margin-top:28px;padding:24px;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.access-card form{display:grid;gap:12px}.access-card label{font-size:13px;font-weight:700}.access-card input{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit}.access-card .code-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.access-card .otp{letter-spacing:.3em}.access-help{font-size:13px;color:var(--muted);margin:14px 0 0}.access-help.error{color:#af563c}.access-logout{display:inline-flex;border:0;background:none;color:var(--teal);text-decoration:underline;cursor:pointer;margin-left:14px;font:inherit}@media(max-width:700px){.access-card .code-row{grid-template-columns:1fr}}</style>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/assessment.css">
+  <style>
+    .assessment-intro{max-width:900px;padding:54px 0 70px}.assessment-intro h1{max-width:850px}.assessment-lead{max-width:820px}
+    .assessment-story{display:grid;gap:22px;margin:32px 0 30px}.assessment-story>p{max-width:800px;color:var(--muted);font-size:17px}
+    .assessment-scenarios{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:4px 0}
+    .assessment-scenario{padding:18px;background:var(--card);border:1px solid var(--line);border-radius:14px;color:var(--muted);font-size:14px}
+    .assessment-scenario strong{display:block;margin-bottom:7px;color:var(--teal-dark);font-size:14px}
+    .assessment-preview{margin:30px 0;padding:18px;background:#eef7f8;border:1px solid #d7e7eb;border-radius:18px}
+    .assessment-preview img{display:block;width:100%;height:auto;border-radius:10px;background:#fff}
+    .assessment-preview figcaption{padding:12px 3px 0;color:var(--muted);font-size:12px}
+    .assessment-benefits{margin:34px 0;padding:28px;background:var(--card);border:1px solid var(--line);border-radius:18px}
+    .assessment-benefits h2,.assessment-program h2{font-size:clamp(25px,3vw,34px);margin-bottom:12px}
+    .assessment-benefits>p,.assessment-program p{color:var(--muted)}
+    .assessment-benefit-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0 0;padding:0;list-style:none}
+    .assessment-benefit-list li{padding:13px 15px;background:#f0f7f5;border-radius:10px;font-size:14px}
+    .assessment-program{margin:28px 0 40px;padding:28px;background:var(--mint);border-radius:18px}
+    .assessment-program p:last-child{margin-bottom:0}
+    .assessment-program strong{color:var(--teal-dark)}
+    .assessment-notes{margin:30px 0}.assessment-login{scroll-margin-top:90px}
+    .menu-contact{display:inline-flex;margin-top:10px;text-decoration:underline;color:var(--teal-dark)}
+    @media(max-width:700px){.assessment-intro{padding:36px 0 52px}.assessment-scenarios,.assessment-benefit-list{grid-template-columns:1fr}.assessment-benefits,.assessment-program{padding:20px}.assessment-preview{padding:10px}}
+  </style>
 </head>
-<body class="assessment-shell"><header class="assessment-header"><a class="assessment-brand" href="/"><img src="/public/assets/logo-full.png" alt=""><span>Linh Coach</span></a><span class="assessment-header-note">Bài kiểm chứng hướng đi</span></header>
+<body class="assessment-shell"><header class="assessment-header"><a class="assessment-brand" href="/"><img src="/public/assets/logo-full.png" alt=""><span>Linh Coach</span></a><span class="assessment-header-note">Bài test hòa nhập du học</span></header>
 <main class="assessment-main">
-  <section class="assessment-intro" id="intro-view"><p class="assessment-eyebrow">KHU VỰC ĐƯỢC CẤP QUYỀN</p><h1>Hiểu cách mình học, làm việc và kết nối.</h1><p class="assessment-lead">Bài kiểm chứng gồm 40 phát biểu. Mỗi mã quyền dùng cho một lượt; quyền truy cập bài test và kết quả có hiệu lực trong 30 ngày.</p><div class="assessment-notes"><div><strong>40 câu</strong><span>Khoảng 8–10 phút</span></div><div><strong>5 chiều</strong><span>Chỉ số xu hướng 0–100</span></div><div><strong>30 ngày</strong><span>Quyền truy cập có thời hạn</span></div></div>
-    <p class="assessment-small">5 chiều: độc lập–liên kết, nhiệm vụ–quan hệ, rủi ro–chắc chắn, bình đẳng–địa vị, trực tiếp–gián tiếp. Điểm 0–100 phản ánh cách con tự mô tả, không phải chẩn đoán, percentile hay điểm chuẩn quốc gia. Mức sẵn sàng du học sẽ được Linh cùng gia đình trao đổi trong buổi tư vấn 60 phút.</p>
-    <div class="access-card" id="access-card"><div id="email-step"><h2>Xác thực quyền làm bài</h2><p>Nhập email đã dùng khi đăng ký hoặc email được Linh cấp quyền. Nếu vừa thanh toán, nhập thêm mã đăng ký bắt đầu bằng LC. Sau khi nhập mã xác thực 6 số trong email, bạn sẽ chọn nhóm bài test rồi mới bắt đầu làm.</p><form id="email-form" novalidate><div class="code-row"><div><label for="email">Email</label><input id="email" type="email" autocomplete="email" required></div><div><label for="order-code">Mã đăng ký (nếu có)</label><input id="order-code" type="text" placeholder="LC12345678" maxlength="10" autocapitalize="characters"></div></div><button class="assessment-button" type="submit">Gửi mã xác thực <span aria-hidden="true">→</span></button></form></div><div id="otp-step" hidden><h2>Nhập mã trong email</h2><p>Chúng tôi đã gửi mã 6 số đến <strong id="email-label"></strong>.</p><form id="otp-form" novalidate><label for="otp">Mã xác thực</label><input class="otp" id="otp" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required><button class="assessment-button" type="submit">Xác nhận và kiểm tra quyền <span aria-hidden="true">→</span></button></form></div><p class="access-help" id="access-status" role="status" aria-live="polite"></p></div>
+  <section class="assessment-intro" id="intro-view">
+    <p class="assessment-eyebrow">HÒA NHẬP MÀ KHÔNG ĐÁNH MẤT MÌNH</p>
+    <h1>Có thể bạn không thiếu năng lực. Có thể bạn đang học cách đọc một môi trường khác.</h1>
+    <p class="assessment-lead">Càng cố hòa nhập, một số du học sinh càng thấy mình “không đúng”. Khác biệt trong cách học, làm việc và giao tiếp có thể khiến bạn nghi ngờ bản thân, dù bạn vẫn có năng lực và mong muốn tiến bộ.</p>
+    <div class="assessment-story">
+      <div class="assessment-scenarios">
+        <article class="assessment-scenario"><strong>Khi làm việc nhóm</strong>Bạn muốn bắt đầu nhiệm vụ ngay, trong khi các bạn khác dành thời gian trò chuyện và xây dựng sự thân thuộc.</article>
+        <article class="assessment-scenario"><strong>Khi học trên lớp</strong>Giảng viên nói “không có một đáp án đúng”, nhưng bạn lại lo vì chưa rõ tiêu chuẩn để biết mình làm tốt.</article>
+        <article class="assessment-scenario"><strong>Khi nhận phản hồi</strong>Một người nói thẳng rằng họ không đồng ý, còn bạn có thể cảm thấy mình đang bị phản đối.</article>
+      </div>
+      <p>Những tình huống ấy không nhất thiết có nghĩa là bạn giao tiếp kém, thiếu tự tin hay không phù hợp với môi trường quốc tế. Có thể phản xạ tự nhiên của bạn đang gặp một phong cách học tập, làm việc và giao tiếp khác.</p>
+    </div>
+    <figure class="assessment-preview">
+      <img src="/public/assets/assessment-profile-comparison.svg" width="1552" height="657" loading="lazy" decoding="async" alt="Minh họa biểu đồ đối chiếu xu hướng cá nhân với hồ sơ tham chiếu của quốc gia trên năm trục">
+      <figcaption>Ví dụ biểu đồ: hiểu phản xạ của mình và đọc các khác biệt trong môi trường học tập quốc tế.</figcaption>
+    </figure>
+    <section class="assessment-benefits" aria-labelledby="assessment-benefits-title">
+      <h2 id="assessment-benefits-title">Bài test giúp bạn hiểu điều gì?</h2>
+      <p>Bài test gồm 40 phát biểu, giúp bạn nhìn lại năm xu hướng thường ảnh hưởng đến trải nghiệm du học:</p>
+      <ul class="assessment-benefit-list">
+        <li>Cách bạn học và phối hợp với người khác</li><li>Cách bạn ứng xử với vai trò và vị trí trong nhóm</li>
+        <li>Cách bạn ra quyết định khi chưa đủ thông tin</li><li>Phong cách giao tiếp và đưa phản hồi</li>
+        <li>Điều bạn ưu tiên khi học tập, làm việc và xây dựng quan hệ</li>
+      </ul>
+      <p style="margin:18px 0 0">Kết quả gợi ý những phản xạ có thể tạo hiểu lầm và tín hiệu nên quan sát khi làm nhóm, trao đổi với giảng viên hoặc xây dựng quan hệ. Đây là điểm khởi đầu để tự hiểu mình, không phải bài xếp hạng năng lực hay kết luận bạn có phù hợp với du học hay không.</p>
+    </section>
+    <section class="assessment-program">
+      <p class="assessment-eyebrow">BƯỚC TIẾP THEO</p>
+      <h2>Hòa nhập không có nghĩa là trở thành một người khác.</h2>
+      <p>Trong chương trình 3 giờ <strong>“Hòa nhập mà không đánh mất mình”</strong>, bạn sẽ đọc môi trường rõ hơn, mở rộng cách lựa chọn hành động và xây dựng kế hoạch hòa nhập 30 ngày với những thử nghiệm cụ thể.</p>
+      <p>Hòa nhập là hiểu mình, đọc được môi trường và chủ động chọn cách hành động phù hợp.</p>
+      <a class="menu-contact" href="mailto:Linhcoach.EQstrength@gmail.com?subject=Ch%C6%B0%C6%A1ng%20tr%C3%ACnh%20H%C3%B2a%20nh%E1%BA%ADp%20m%C3%A0%20kh%C3%B4ng%20%C4%91%C3%A1nh%20m%E1%BA%A5t%20m%C3%ACnh">Nhắn Linh để nhận thông tin chương trình <span aria-hidden="true">→</span></a>
+    </section>
+    <div class="assessment-notes"><div><strong>40 câu</strong><span>Khoảng 8–10 phút</span></div><div><strong>5 xu hướng</strong><span>Học, phối hợp, vai trò, quyết định và giao tiếp</span></div><div><strong>30 ngày</strong><span>Kế hoạch thử nghiệm trong chương trình coaching</span></div></div>
+    <div class="access-card assessment-login" id="access-card">
+      <div id="email-step"><h2>Bắt đầu bài test</h2><p>Bài test dành cho người đã được cấp quyền. Nhập email và mã đăng nhập trong thư Linh Coach đã gửi. Nếu vừa thanh toán và chưa nhận mã, nhập mã đăng ký LC để hệ thống cấp lượt và gửi mã đăng nhập riêng.</p>
+        <form id="email-form" novalidate><div class="code-row"><div><label for="email">Email được cấp quyền</label><input id="email" type="email" autocomplete="email" required></div><div><label for="access-code">Mã đăng nhập bài test</label><input id="access-code" type="text" placeholder="Ví dụ: A1B2-C3D4-E5F6-7890" maxlength="19" autocapitalize="characters" autocomplete="off"></div><div><label for="order-code">Mã đăng ký LC (nếu mới thanh toán)</label><input id="order-code" type="text" placeholder="LC12345678" maxlength="10" autocapitalize="characters"></div></div><button class="assessment-button" type="submit">Tiếp tục <span aria-hidden="true">→</span></button></form>
+      </div>
+      <div id="otp-step" hidden><h2>Nhập mã trong email</h2><p>Chúng tôi đã gửi mã 6 số đến <strong id="email-label"></strong>.</p><form id="otp-form" novalidate><label for="otp">Mã xác thực</label><input class="otp" id="otp" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required><button class="assessment-button" type="submit">Xác nhận và kiểm tra quyền <span aria-hidden="true">→</span></button></form></div>
+      <p class="access-help" id="access-status" role="status" aria-live="polite"></p>
+    </div>
     <button class="access-logout" id="logout-button" type="button" hidden>Đăng xuất</button>
   </section>
   <section class="profile-view" id="profile-view" hidden>
-    <p class="assessment-eyebrow">CHỌN NHÓM PHÙ HỢP</p><h2>Bài test dành cho ai?</h2><p class="profile-intro">Sau khi xác thực email, chọn nhóm phù hợp với bạn. Lựa chọn này giúp Linh đọc kết quả theo đúng bối cảnh học tập hoặc công việc.</p>
+    <p class="assessment-eyebrow">CHỌN NHÓM PHÙ HỢP</p><h2>Bài test dành cho ai?</h2>
+    <p class="profile-intro">Chọn nhóm phù hợp để Linh đọc kết quả theo đúng bối cảnh học tập hoặc công việc.</p>
     <form id="profile-form"><div class="profile-options">
       <label class="profile-option"><input type="radio" name="profileType" value="student" required><span><strong>Học sinh / sinh viên</strong><small>Đang học phổ thông, cao đẳng hoặc đại học.</small></span></label>
       <label class="profile-option"><input type="radio" name="profileType" value="professional" required><span><strong>Người đi làm</strong><small>Đang đi làm hoặc chuẩn bị chuyển hướng nghề nghiệp.</small></span></label>
     </div><button class="assessment-button" type="submit">Bắt đầu bài test <span aria-hidden="true">→</span></button></form>
   </section>
-  <section class="quiz-view" id="quiz-view" hidden><div class="quiz-topline"><span id="progress-label">Câu 1 / 40</span><span id="progress-percent">0%</span></div><div class="progress-track"><span id="progress-bar"></span></div><div class="quiz-heading"><p class="assessment-eyebrow">CHỌN MỨC ĐỘ PHÙ HỢP NHẤT</p><h2>Không cần suy nghĩ quá lâu.</h2><p>Hãy trả lời theo cách con thường hành động, không phải theo cách con nghĩ người khác mong đợi.</p></div><form id="quiz-form" novalidate><div id="question-list"></div><div class="quiz-actions"><button class="assessment-button" id="next-button" type="submit">Câu tiếp theo <span aria-hidden="true">→</span></button><p class="assessment-small" id="quiz-status" role="status" aria-live="polite"></p></div></form></section>
+  <section class="quiz-view" id="quiz-view" hidden><div class="quiz-topline"><span id="progress-label">Câu 1 / 40</span><span id="progress-percent">0%</span></div><div class="progress-track"><span id="progress-bar"></span></div><div class="quiz-heading"><p class="assessment-eyebrow">CHỌN MỨC ĐỘ PHÙ HỢP NHẤT</p><h2>Không cần suy nghĩ quá lâu.</h2><p>Hãy trả lời theo cách bạn thường hành động, không phải theo cách bạn nghĩ người khác mong đợi.</p></div><form id="quiz-form" novalidate><div id="question-list"></div><div class="quiz-actions"><button class="assessment-button" id="next-button" type="submit">Câu tiếp theo <span aria-hidden="true">→</span></button><p class="assessment-small" id="quiz-status" role="status" aria-live="polite"></p></div></form></section>
 </main><script src="/assessment.js" type="module"></script></body></html>
