@@ -15,6 +15,7 @@ const countryPickerGrid = document.getElementById('country-picker-grid');
 const countryPickerToggle = document.getElementById('country-picker-toggle');
 const countryStatus = document.getElementById('country-status');
 const countryResults = document.getElementById('country-results');
+const nearestCountryResults = document.getElementById('nearest-country-results');
 const token = new URLSearchParams(window.location.search).get('token');
 const attemptId = new URLSearchParams(window.location.search).get('id');
 const previousResult = document.getElementById('previous-result');
@@ -32,7 +33,7 @@ function flagEmoji(iso2) {
 }
 
 function countryLabel(profile) {
-  return `${flagEmoji(profile.iso2)} ${profile.nameVi} / ${profile.nameEn}`;
+  return `${profile.nameVi} / ${profile.nameEn}`;
 }
 
 function formatExpiry(timestamp) {
@@ -62,7 +63,7 @@ function countryScoreRows(profile) {
     const userScore = Math.max(0, Math.min(100, Number(result.position) || 0));
     const countryScore = Math.max(0, Math.min(100, Number(profile.scores[result.key]) || 0));
     return `<div class="country-profile-row">
-      <strong class="country-profile-axis">${escapeHtml(result.key)} · ${escapeHtml(result.left)} / ${escapeHtml(result.right)}</strong>
+      
       <span class="country-axis-end">${escapeHtml(result.left)}</span>
       <span class="country-score-track" role="img" aria-label="Đối chiếu trục ${escapeHtml(result.key)}: hồ sơ ${escapeHtml(countryLabel(profile))} và kết quả của bạn"><span class="country-score-fill" style="width:${countryScore}%"></span><i class="country-user-marker" style="left:${userScore}%"></i></span>
       <span class="country-axis-end">${escapeHtml(result.right)}</span>
@@ -90,14 +91,15 @@ function renderCountryPicker() {
 }
 
 function renderCountryComparison() {
-  if (!countryResults || !COUNTRY_PROFILES.length || !userResults.length) return;
+  if (!countryResults || !nearestCountryResults || !COUNTRY_PROFILES.length || !userResults.length) return;
   const selected = COUNTRY_PROFILES.filter(profile => selectedCountryIds.has(profile.id));
   const nearest = COUNTRY_PROFILES.map(profile => ({profile, distance: distanceToCountry(profile)}))
     .sort((a, b) => a.distance - b.distance).slice(0, 3);
   const selectedCards = selected.map(profile => `<article class="country-compare-card"><h3>${escapeHtml(countryLabel(profile))}</h3><div class="country-profile-chart">${countryScoreRows(profile)}</div><div class="country-chart-legend"><span><i class="legend-country"></i> Hồ sơ quốc gia</span><span><i class="legend-user"></i> Kết quả của bạn</span></div></article>`).join('');
   const nearestCards = nearest.map((item, index) => `<article class="nearest-country-card"><header><span class="nearest-country-rank">#${index + 1}</span><span class="nearest-country-name"><strong>${escapeHtml(countryLabel(item.profile))}</strong></span></header><div class="country-profile-chart country-mini-chart">${countryScoreRows(item.profile)}</div></article>`).join('');
-  const comparisons = selectedCards || '<div class="country-compare-card"><h3>Chọn tối đa 3 quốc gia</h3><p>Mở bộ chọn để đối chiếu hồ sơ quốc gia với 5 trục kết quả của bạn.</p></div>';
-  countryResults.innerHTML = `<div class="country-compare-grid">${comparisons}</div><section class="nearest-country-section"><h3>3 quốc gia có hồ sơ gần nhất</h3><p>Các biểu đồ thể hiện vị trí tương đối trên từng trục.</p><div class="nearest-country-grid">${nearestCards}</div></section>`;
+  const comparisons = selectedCards || '<div class="country-compare-card"><p>Chọn tối đa ba quốc gia ở phía trên để xem so sánh.</p></div>';
+  nearestCountryResults.innerHTML = nearestCards;
+  countryResults.innerHTML = `<div class="country-compare-grid">${comparisons}</div>`;
 }
 
 function renderCountryOptions() {
