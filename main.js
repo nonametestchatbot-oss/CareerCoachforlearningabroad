@@ -124,3 +124,23 @@ try {
   sessionStorage.removeItem('linhCoachConsultationOrder');
 }
 
+
+
+// Keep the primary navigation available on mobile and make it keyboard accessible.
+const menuToggle = document.getElementById('menu-toggle');
+const mainNavigation = document.getElementById('main-navigation');
+if (menuToggle && mainNavigation) {
+  const closeMenu = () => {
+    menuToggle.setAttribute('aria-expanded', 'false');
+    mainNavigation.classList.remove('is-open');
+  };
+  menuToggle.addEventListener('click', () => {
+    const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+    menuToggle.setAttribute('aria-expanded', String(!isOpen));
+    mainNavigation.classList.toggle('is-open', !isOpen);
+  });
+  mainNavigation.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeMenu();
+  });
+}
