@@ -202,3 +202,5 @@ body{padding-top:78px}
   .review-grid{grid-template-columns:1fr}
   .review-card{min-height:0}
 }
+
+.footer-grid a{overflow-wrap:anywhere}
