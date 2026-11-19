@@ -12,3 +12,14 @@
 .question-card .scale-options{display:grid!important;width:100%!important;min-width:0;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:8px}
 .question-card .scale-options label{box-sizing:border-box;width:100%!important;min-width:0;margin:0}
 @media(max-width:700px){.question-card .scale-options{gap:5px}}
+
+/* Keep response choices readable while preserving equal-sized answer cards. */
+.question-card .scale-note{display:none}
+.question-card .scale-options{grid-template-columns:repeat(7,minmax(0,1fr))!important;align-items:stretch}
+.question-card .scale-options label{min-height:76px;padding:8px 5px;text-align:center;font-size:11px;line-height:1.25;overflow-wrap:anywhere}
+.question-card .scale-options label span{display:block}
+.question-card .scale-options input:focus-visible+span{outline:2px solid var(--teal);outline-offset:3px;border-radius:4px}
+@media(max-width:700px){
+  .question-card .scale-options{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px}
+  .question-card .scale-options label{min-height:58px;padding:9px 8px;font-size:12px}
+}

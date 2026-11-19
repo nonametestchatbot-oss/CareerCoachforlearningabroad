@@ -31,7 +31,15 @@ let pendingCode = '';
 let pendingAccessCode = '';
 let pageIndex = 0;
 let profileType = '';
-const choices = [['1','Hoàn toàn không giống tôi'],['2','Khá không giống tôi'],['3','Hơi không giống tôi'],['4','Ở giữa / tùy hoàn cảnh'],['5','Hơi giống tôi'],['6','Khá giống tôi'],['7','Rất giống tôi']];
+const choices = [
+  ['1','Hoàn toàn không đồng ý'],
+  ['2','Không đồng ý'],
+  ['3','Không hoàn toàn đồng ý'],
+  ['4','Trung lập'],
+  ['5','Đồng ý một phần'],
+  ['6','Đồng ý'],
+  ['7','Hoàn toàn đồng ý']
+];
 const queryCode = new URLSearchParams(window.location.search).get('code');
 if (queryCode) codeInput.value = queryCode.toUpperCase();
 function setStatus(element, message, isError = false) { element.textContent = message; element.classList.toggle('error', isError); }
@@ -73,8 +81,8 @@ function renderQuestions() {
     return `<article class="question-card" role="group" aria-labelledby="${titleId}">
       <h3 class="question-prompt" id="${titleId}">${number}. ${question.text}</h3>
       <div class="question-response">
-        <div class="scale-note"><span>Không giống tôi</span><span>Giống tôi</span></div>
-        <div class="scale-options" role="radiogroup" aria-labelledby="${titleId}">${choices.map(([value,label]) => `<label title="${label}"><input type="radio" name="answer-${question.id}" value="${value}" ${selected === value ? 'checked' : ''}><span>${value}</span></label>`).join('')}</div>
+        
+        <div class="scale-options" role="radiogroup" aria-labelledby="${titleId}">${choices.map(([value,label]) => `<label title="${label}"><input type="radio" name="answer-${question.id}" value="${value}" ${selected === value ? 'checked' : ''}><span>${label}</span></label>`).join('')}</div>
       </div>
     </article>`;
   }).join('');
