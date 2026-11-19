@@ -10,7 +10,9 @@ const app = document.getElementById('result-app');
 const errorView = document.getElementById('result-error');
 const expiry = document.getElementById('result-expiry');
 const profileTypeBadge = document.getElementById('result-profile-type');
-const countrySelect = document.getElementById('country-select');
+const countryPicker = document.getElementById('country-picker');
+const countryPickerGrid = document.getElementById('country-picker-grid');
+const countryPickerToggle = document.getElementById('country-picker-toggle');
 const countryStatus = document.getElementById('country-status');
 const countryResults = document.getElementById('country-results');
 const token = new URLSearchParams(window.location.search).get('token');
@@ -19,6 +21,7 @@ const previousResult = document.getElementById('previous-result');
 const previousChart = document.getElementById('previous-chart');
 const downloadButton = document.getElementById('download-result');
 let userResults = [];
+const selectedCountryIds = new Set();
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>'"]/g, character => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;'}[character]));
@@ -40,27 +43,13 @@ function renderCard(result) {
   const position = Math.max(0, Math.min(100, Number(result.position) || 50));
   const markerColor = result.level === 'middle' ? 'var(--teal)' : result.level.includes('left') ? 'var(--orange)' : 'var(--gold)';
   return `<article class="result-card">
-    <div class="result-card-header"><div><h3>${escapeHtml(result.left)} <span aria-hidden="true">—</span> ${escapeHtml(result.right)}</h3><p class="result-theme">${escapeHtml(result.theme)}</p></div><strong class="result-score">${result.position}/100</strong></div>
+    <div class="result-card-header"><div><h3>${escapeHtml(result.left)} <span aria-hidden="true">—</span> ${escapeHtml(result.right)}</h3><p class="result-theme">${escapeHtml(result.theme)}</p></div></div>
     <p class="result-phrase">${escapeHtml(result.phrase)}</p>
     <div class="axis-labels"><span>${escapeHtml(result.left)}</span><span>${escapeHtml(result.right)}</span></div>
-    <div class="axis-track" aria-label="Vị trí trên thang xu hướng 0–100"><span class="axis-marker" style="left:${position}%;background:${markerColor}"></span></div>
-    <div class="result-score-note">Điểm xu hướng: <strong>${result.position}/100</strong> · quy đổi từ câu trả lời, không phải percentile hay điểm chuẩn quốc gia.</div>
+    <div class="axis-track" role="img" aria-label="Vị trí của bạn giữa ${escapeHtml(result.left)} và ${escapeHtml(result.right)}"><span class="axis-marker" style="left:${position}%;background:${markerColor}"></span></div>
     <div class="result-detail-grid"><div class="result-detail"><h4>${escapeHtml(result.left)}</h4><p>${escapeHtml(result.leftDetail || '')}</p></div><div class="result-detail"><h4>${escapeHtml(result.right)}</h4><p>${escapeHtml(result.rightDetail || '')}</p></div></div>
     <p class="result-context"><strong>Gợi ý:</strong> ${escapeHtml(result.context)}</p>
   </article>`;
-}
-
-function renderCountryOptions() {
-  if (!countrySelect || !countryStatus) return;
-  if (!COUNTRY_PROFILES.length) {
-    countrySelect.disabled = true;
-    countryStatus.textContent = 'Bảng tham chiếu quốc gia hiện chưa khả dụng. Bạn vẫn có thể xem và tải kết quả 5 chiều.';
-    return;
-  }
-  countrySelect.innerHTML = '<option value="">Chọn một nước để so sánh</option>' + COUNTRY_PROFILES.map(profile => `<option value="${escapeHtml(profile.id)}">${escapeHtml(countryLabel(profile))}</option>`).join('');
-  countrySelect.disabled = false;
-  countryStatus.textContent = 'Điểm quốc gia được số hóa từ 36 biểu đồ tham chiếu do Linh cung cấp. Đây là mốc đối chiếu xu hướng, không mô tả mọi cá nhân trong một nước.';
-  renderCountryComparison();
 }
 
 function distanceToCountry(profile) {
@@ -72,20 +61,59 @@ function countryScoreRows(profile) {
   return userResults.map(result => {
     const userScore = Math.max(0, Math.min(100, Number(result.position) || 0));
     const countryScore = Math.max(0, Math.min(100, Number(profile.scores[result.key]) || 0));
-    return `<div class="country-profile-row"><span class="country-profile-axis"><strong>${escapeHtml(result.key)}</strong> · ${escapeHtml(result.left)} — ${escapeHtml(result.right)}</span><span class="country-score-track" role="img" aria-label="Quốc gia ${countryScore}, bạn ${userScore} trên 100"><span class="country-score-fill" style="width:${countryScore}%"></span><i class="country-user-marker" style="left:${userScore}%"></i></span><strong class="country-score-values">${countryScore} / ${userScore}</strong></div>`;
+    return `<div class="country-profile-row">
+      <strong class="country-profile-axis">${escapeHtml(result.key)} · ${escapeHtml(result.left)} / ${escapeHtml(result.right)}</strong>
+      <span class="country-axis-end">${escapeHtml(result.left)}</span>
+      <span class="country-score-track" role="img" aria-label="Đối chiếu trục ${escapeHtml(result.key)}: hồ sơ ${escapeHtml(countryLabel(profile))} và kết quả của bạn"><span class="country-score-fill" style="width:${countryScore}%"></span><i class="country-user-marker" style="left:${userScore}%"></i></span>
+      <span class="country-axis-end">${escapeHtml(result.right)}</span>
+    </div>`;
   }).join('');
 }
 
+function renderCountryPicker() {
+  if (!countryPickerGrid) return;
+  const atLimit = selectedCountryIds.size >= 3;
+  countryPickerGrid.innerHTML = COUNTRY_PROFILES.map(profile => {
+    const selected = selectedCountryIds.has(profile.id);
+    const disabled = atLimit && !selected;
+    return `<button class="country-choice" type="button" data-country-id="${escapeHtml(profile.id)}" aria-pressed="${selected}" ${disabled ? 'disabled' : ''}>
+      <span class="country-choice-flag" aria-hidden="true">${flagEmoji(profile.iso2)}</span><span class="country-choice-name">${escapeHtml(profile.nameVi)}<br><span lang="en">${escapeHtml(profile.nameEn)}</span></span>
+    </button>`;
+  }).join('');
+  countryPickerGrid.querySelectorAll('[data-country-id]').forEach(button => button.addEventListener('click', () => {
+    const id = button.dataset.countryId;
+    if (selectedCountryIds.has(id)) selectedCountryIds.delete(id);
+    else if (selectedCountryIds.size < 3) selectedCountryIds.add(id);
+    renderCountryPicker();
+    renderCountryComparison();
+  }));
+}
+
 function renderCountryComparison() {
-  if (!countryResults || !countrySelect || !COUNTRY_PROFILES.length || !userResults.length) return;
-  const selected = COUNTRY_PROFILES.find(profile => profile.id === countrySelect.value);
+  if (!countryResults || !COUNTRY_PROFILES.length || !userResults.length) return;
+  const selected = COUNTRY_PROFILES.filter(profile => selectedCountryIds.has(profile.id));
   const nearest = COUNTRY_PROFILES.map(profile => ({profile, distance: distanceToCountry(profile)}))
     .sort((a, b) => a.distance - b.distance).slice(0, 3);
-  const selectedCard = selected
-    ? `<div class="country-compare-card"><h3>${escapeHtml(countryLabel(selected))} và hồ sơ của bạn</h3><p>Thanh màu là mốc tham khảo của quốc gia; vạch đậm là vị trí của bạn. Khoảng cách được tính trên 5 trục.</p><div class="country-profile-chart">${countryScoreRows(selected)}</div><div class="country-chart-legend"><span><i class="legend-country"></i> Mốc quốc gia</span><span><i class="legend-user"></i> Kết quả của bạn</span></div></div>`
-    : `<div class="country-compare-card"><h3>Chọn một nước để đối chiếu</h3><p>Chọn nước ở phía trên để xem 5 trục cạnh hồ sơ tham khảo. Ba nước gần nhất với điểm của bạn vẫn được hiển thị bên dưới.</p></div>`;
-  const nearestCards = nearest.map((item, index) => `<article class="nearest-country-card"><header><span class="nearest-country-rank">#${index + 1}</span><span class="nearest-country-name"><strong>${escapeHtml(countryLabel(item.profile))}</strong><small>Độ lệch trung bình: ${item.distance.toFixed(1)} điểm</small></span></header><div class="country-profile-chart country-mini-chart">${countryScoreRows(item.profile)}</div></article>`).join('');
-  countryResults.innerHTML = `${selectedCard}<div class="nearest-country-section"><h3>3 nước có hồ sơ gần nhất với bạn</h3><p>Mỗi thẻ cho thấy 5 trục; thanh màu là hồ sơ tham khảo, vạch đậm là kết quả của bạn.</p><div class="nearest-country-grid">${nearestCards}</div></div>`;
+  const selectedCards = selected.map(profile => `<article class="country-compare-card"><h3>${escapeHtml(countryLabel(profile))}</h3><div class="country-profile-chart">${countryScoreRows(profile)}</div><div class="country-chart-legend"><span><i class="legend-country"></i> Hồ sơ quốc gia</span><span><i class="legend-user"></i> Kết quả của bạn</span></div></article>`).join('');
+  const nearestCards = nearest.map((item, index) => `<article class="nearest-country-card"><header><span class="nearest-country-rank">#${index + 1}</span><span class="nearest-country-name"><strong>${escapeHtml(countryLabel(item.profile))}</strong></span></header><div class="country-profile-chart country-mini-chart">${countryScoreRows(item.profile)}</div></article>`).join('');
+  const comparisons = selectedCards || '<div class="country-compare-card"><h3>Chọn tối đa 3 quốc gia</h3><p>Mở bộ chọn để đối chiếu hồ sơ quốc gia với 5 trục kết quả của bạn.</p></div>';
+  countryResults.innerHTML = `<div class="country-compare-grid">${comparisons}</div><section class="nearest-country-section"><h3>3 quốc gia có hồ sơ gần nhất</h3><p>Các biểu đồ thể hiện vị trí tương đối trên từng trục.</p><div class="nearest-country-grid">${nearestCards}</div></section>`;
+}
+
+function renderCountryOptions() {
+  if (!countryPickerToggle || !countryPicker || !countryStatus) return;
+  if (!COUNTRY_PROFILES.length) {
+    countryPickerToggle.disabled = true;
+    countryStatus.textContent = 'Bảng tham chiếu quốc gia hiện chưa khả dụng. Bạn vẫn có thể xem và tải kết quả 5 chiều.';
+    return;
+  }
+  for (const iso2 of ['US', 'GB', 'AU']) {
+    const profile = COUNTRY_PROFILES.find(item => item.iso2 === iso2);
+    if (profile) selectedCountryIds.add(profile.id);
+  }
+  countryStatus.textContent = 'Chọn tối đa 3 nước. Biểu đồ là mốc tham chiếu xu hướng văn hóa, không mô tả mọi cá nhân trong một quốc gia.';
+  renderCountryPicker();
+  renderCountryComparison();
 }
 
 async function loadResult() {
@@ -107,7 +135,10 @@ async function loadResult() {
   }
 }
 
-countrySelect?.addEventListener('change', renderCountryComparison);
+countryPickerToggle?.addEventListener('click', () => {
+  countryPicker.hidden = !countryPicker.hidden;
+  countryPickerToggle.setAttribute('aria-expanded', String(!countryPicker.hidden));
+});
 downloadButton?.addEventListener('click', () => window.print());
 loadResult().catch(() => {
   app.hidden = true;
@@ -120,4 +151,3 @@ loadResult().catch(() => {
     ? 'Mã đăng nhập có thể sai hoặc quyền đã hết hạn. Hãy mở bài test, nhập đúng email và mã trong email cấp quyền rồi thử lại. Nếu vẫn gặp lỗi, liên hệ Linh.'
     : 'Trang này cần đường dẫn kết quả riêng được tạo sau khi hoàn thành bài test. Hãy mở bài test hoặc liên hệ Linh nếu bạn chưa nhận được đường dẫn.';
 });
-

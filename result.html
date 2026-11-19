@@ -18,11 +18,22 @@
     .nearest-country-section>h3{margin:0 0 8px}.nearest-country-section>p{margin-bottom:15px}.nearest-country-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.nearest-country-card{padding:17px;min-width:0}.nearest-country-card header{display:flex;align-items:flex-start;gap:10px}.nearest-country-rank{display:grid;place-items:center;width:28px;height:28px;flex:none;border-radius:50%;background:var(--mint);color:var(--teal-dark);font-weight:700}.nearest-country-name{display:grid;gap:3px}.nearest-country-name small{color:var(--muted);font-size:11px}.country-mini-chart{gap:8px;margin-top:16px}.country-mini-chart .country-profile-row{grid-template-columns:26px minmax(55px,1fr) 55px;gap:7px;font-size:11px}.country-mini-chart .country-profile-axis{white-space:nowrap}.country-mini-chart .country-profile-axis strong{display:inline}.country-mini-chart .country-score-track{height:9px}.country-mini-chart .country-user-marker{top:-3px;height:15px}.country-mini-chart .country-score-values{font-size:10px}
     @media(max-width:900px){.nearest-country-grid{grid-template-columns:1fr 1fr}}
     @media(max-width:700px){.result-percentile{display:block;margin-top:8px}.nearest-country-grid{grid-template-columns:1fr}.country-compare-card,.nearest-country-card{padding:16px}.country-profile-row{grid-template-columns:minmax(118px,1fr) minmax(75px,1fr) 60px;gap:7px;font-size:10px}.country-mini-chart .country-profile-row{grid-template-columns:24px minmax(60px,1fr) 52px}.country-score-values{font-size:10px}}
+  .result-score,.result-score-note,.result-percentile,.result-z,.country-score-values,.nearest-country-rank,.nearest-country-name small{display:none!important}
+    .axis-labels{margin-top:22px}.axis-track{margin-top:8px}
+    .country-picker-toggle{margin-top:22px}.country-picker{margin-top:16px;padding:18px;background:var(--card);border:1px solid var(--line);border-radius:16px}
+    .country-picker-help{font-size:13px;color:var(--muted);margin:0 0 14px}.country-picker-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+    .country-choice{display:flex;align-items:center;gap:9px;min-width:0;padding:11px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;text-align:left}
+    .country-choice[aria-pressed="true"]{border-color:var(--teal);background:#edf5f0}.country-choice:disabled{opacity:.42;cursor:not-allowed}.country-choice-flag{font-size:22px}.country-choice-name{font-size:12px;font-weight:700;line-height:1.25}.country-results{grid-template-columns:1fr}.country-compare-grid{display:grid;grid-template-columns:1fr;gap:16px}
+    .country-compare-card h3{font-size:23px}.country-profile-chart{gap:18px}.country-profile-row{display:grid;grid-template-columns:minmax(90px,1fr) minmax(120px,2fr) minmax(90px,1fr);gap:10px;align-items:center;font-size:12px}
+    .country-profile-axis{grid-column:1/-1;font-size:13px;font-weight:700;color:var(--teal-dark)}.country-axis-end{font-size:11px;color:var(--muted)}.country-axis-end:last-child{text-align:right}
+    .country-score-track{grid-column:2;grid-row:2}.country-profile-row>.country-axis-end:first-of-type{grid-column:1;grid-row:2}.country-profile-row>.country-axis-end:last-of-type{grid-column:3;grid-row:2}
+    .nearest-country-grid{grid-template-columns:1fr;gap:20px}.nearest-country-card{padding:26px}.nearest-country-card header{align-items:center}.nearest-country-name strong{font-size:20px}.country-mini-chart .country-profile-row{grid-template-columns:minmax(82px,1fr) minmax(110px,2fr) minmax(82px,1fr);font-size:12px}.country-mini-chart .country-profile-axis{grid-column:1/-1}
+    @media(max-width:700px){.country-picker-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.country-choice{padding:9px}.country-profile-row{grid-template-columns:minmax(72px,.8fr) minmax(70px,1.4fr) minmax(72px,.8fr);gap:6px}.country-axis-end{font-size:10px}.nearest-country-card{padding:18px}.country-mini-chart .country-profile-row{grid-template-columns:minmax(66px,.8fr) minmax(65px,1.4fr) minmax(66px,.8fr);gap:6px}}
   </style>
 </head>
 <body class="assessment-shell result-shell">
   <header class="assessment-header">
-    <a class="assessment-brand" href="/"><img src="/assets/logo-full.png" alt=""><span>Linh Coach</span></a>
+    <a class="assessment-brand" href="/"><img src="/public/assets/logo-full.png" alt=""><span>Linh Coach</span></a>
     <span class="assessment-header-note">Bản đồ xu hướng</span>
   </header>
   <main class="result-main" id="result-app">
@@ -37,16 +48,19 @@
       <div class="result-section-heading">
         <p class="assessment-eyebrow">5 CHIỀU</p>
         <h2>Nhìn vị trí của mình giữa hai xu hướng.</h2>
-        <p>Điểm phần trăm là vị trí tham chiếu theo bảng quy đổi trong workbook; không có mức nào tự động tốt hay xấu.</p>
+        <p>Vị trí trên mỗi trục giúp bạn nhìn lại xu hướng của mình; không có phía nào tự động tốt hay xấu.</p>
       </div>
       <div class="result-chart" id="result-chart"></div>
     </section>
     <section class="country-comparison" aria-labelledby="country-heading">
       <p class="assessment-eyebrow">SO SÁNH THAM CHIẾU</p>
-      <h2 id="country-heading">Bạn muốn đối chiếu với nước nào?</h2>
-      <p class="country-intro">Chọn một nước để xem biểu đồ 5 trục cạnh kết quả của bạn. Bên dưới luôn có ba hồ sơ quốc gia gần nhất, kèm cờ, tên và biểu đồ so sánh.</p>
-      <label class="country-select-label" for="country-select">Nước tham chiếu</label>
-      <select id="country-select" class="country-select" disabled><option>Đang tải dữ liệu…</option></select>
+      <h2 id="country-heading">So sánh hồ sơ của bạn với quốc gia</h2>
+      <p class="country-intro">Mặc định đã chọn Hoa Kỳ, Vương quốc Anh và Úc. Bạn có thể đổi lựa chọn, tối đa ba quốc gia cùng lúc. Bên dưới là ba hồ sơ gần nhất với xu hướng của bạn.</p>
+      <button class="assessment-button country-picker-toggle" id="country-picker-toggle" type="button" aria-expanded="false">So sánh với quốc gia <span aria-hidden="true">＋</span></button>
+      <div class="country-picker" id="country-picker" hidden>
+        <p class="country-picker-help">Chọn tối đa 3 quốc gia để đối chiếu. Khi đã chọn đủ 3, hãy bỏ chọn một nước trước khi chọn nước khác.</p>
+        <div class="country-picker-grid" id="country-picker-grid"></div>
+      </div>
       <p class="assessment-small" id="country-status" role="status"></p>
       <div id="country-results" class="country-results"></div>
       <section id="previous-result" hidden style="margin-top:28px"><h2>Lần gần nhất để bạn đối chiếu</h2><p class="country-intro">Phần này chỉ xuất hiện khi lượt truy cập mới được cấp quyền xem kết quả trước đó.</p><div id="previous-chart" class="result-chart"></div></section>

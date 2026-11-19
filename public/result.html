@@ -8,16 +8,32 @@
   <title>Bản đồ xu hướng | Linh Coach</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assessment.css?v=20261102">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assessment.css">
   <style>
-    .result-score{font:700 21px "DM Sans",Arial,sans-serif;color:var(--teal-dark);white-space:nowrap}.result-score-note{margin:0 0 12px;color:var(--muted);font-size:13px}.country-comparison{padding:52px 0 74px;border-top:1px solid var(--line)}.country-comparison h2{font-size:clamp(30px,4vw,48px);margin-bottom:14px}.country-intro{color:var(--muted);max-width:740px}.country-select-label{display:block;margin:24px 0 7px;font-size:13px;font-weight:700}.country-select{width:min(440px,100%);padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit}.country-results{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;margin-top:24px}.country-compare-card{padding:22px;background:var(--card);border:1px solid var(--line);border-radius:16px}.country-compare-card h3{font-size:20px;margin-bottom:8px}.country-compare-card p{color:var(--muted);font-size:14px}.country-table{display:grid;gap:7px;margin-top:18px}.country-row{display:grid;grid-template-columns:1fr 80px 110px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.country-row strong{text-align:right}.country-row-head{font-weight:700;color:var(--muted);border-bottom:2px solid var(--line)}.nearest-list{display:grid;gap:12px;margin:18px 0 0;padding-left:22px}.nearest-list li{display:flex;justify-content:space-between;gap:12px;padding-left:5px}.nearest-list strong{font-size:12px;color:var(--teal)}
-    @media(max-width:700px){.result-score{display:block;margin-top:8px}.country-results{grid-template-columns:1fr}.country-row{grid-template-columns:1fr 58px 78px;font-size:12px}}
+    .result-percentile{font:700 21px "Libre Baskerville",Georgia,serif;color:var(--teal-dark);white-space:nowrap}.result-z{margin:0 0 12px;color:var(--muted);font-size:13px}
+    .country-comparison{padding:52px 0 74px;border-top:1px solid var(--line)}.country-comparison h2{font-size:clamp(30px,4vw,48px);margin-bottom:14px}.country-intro{color:var(--muted);max-width:740px}.country-select-label{display:block;margin:24px 0 7px;font-size:13px;font-weight:700}.country-select{width:min(440px,100%);padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit}.country-results{display:grid;grid-template-columns:1fr;gap:22px;margin-top:24px}
+    .country-compare-card,.nearest-country-card{padding:22px;background:var(--card);border:1px solid var(--line);border-radius:16px}.country-compare-card h3,.nearest-country-section h3{font-size:20px;margin-bottom:8px}.country-compare-card p,.nearest-country-section>p{color:var(--muted);font-size:14px}
+    .country-profile-chart{display:grid;gap:10px;margin-top:18px}.country-profile-row{display:grid;grid-template-columns:minmax(190px,1fr) minmax(130px,1.2fr) 82px;gap:12px;align-items:center;font-size:12px}.country-profile-axis{line-height:1.4}.country-score-track{position:relative;display:block;height:12px;border-radius:999px;background:#e7e2d8}.country-score-fill{display:block;height:100%;border-radius:inherit;background:#9bb9a9}.country-user-marker{position:absolute;top:-4px;width:3px;height:20px;border-radius:2px;background:var(--teal-dark);transform:translateX(-50%)}.country-score-values{text-align:right;font-variant-numeric:tabular-nums}.country-chart-legend{display:flex;flex-wrap:wrap;gap:18px;margin-top:18px;color:var(--muted);font-size:12px}.country-chart-legend span{display:flex;align-items:center;gap:7px}.legend-country{width:14px;height:9px;background:#9bb9a9;border-radius:5px}.legend-user{width:3px;height:15px;background:var(--teal-dark)}
+    .nearest-country-section>h3{margin:0 0 8px}.nearest-country-section>p{margin-bottom:15px}.nearest-country-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.nearest-country-card{padding:17px;min-width:0}.nearest-country-card header{display:flex;align-items:flex-start;gap:10px}.nearest-country-rank{display:grid;place-items:center;width:28px;height:28px;flex:none;border-radius:50%;background:var(--mint);color:var(--teal-dark);font-weight:700}.nearest-country-name{display:grid;gap:3px}.nearest-country-name small{color:var(--muted);font-size:11px}.country-mini-chart{gap:8px;margin-top:16px}.country-mini-chart .country-profile-row{grid-template-columns:26px minmax(55px,1fr) 55px;gap:7px;font-size:11px}.country-mini-chart .country-profile-axis{white-space:nowrap}.country-mini-chart .country-profile-axis strong{display:inline}.country-mini-chart .country-score-track{height:9px}.country-mini-chart .country-user-marker{top:-3px;height:15px}.country-mini-chart .country-score-values{font-size:10px}
+    @media(max-width:900px){.nearest-country-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:700px){.result-percentile{display:block;margin-top:8px}.nearest-country-grid{grid-template-columns:1fr}.country-compare-card,.nearest-country-card{padding:16px}.country-profile-row{grid-template-columns:minmax(118px,1fr) minmax(75px,1fr) 60px;gap:7px;font-size:10px}.country-mini-chart .country-profile-row{grid-template-columns:24px minmax(60px,1fr) 52px}.country-score-values{font-size:10px}}
+  .result-score,.result-score-note,.result-percentile,.result-z,.country-score-values,.nearest-country-rank,.nearest-country-name small{display:none!important}
+    .axis-labels{margin-top:22px}.axis-track{margin-top:8px}
+    .country-picker-toggle{margin-top:22px}.country-picker{margin-top:16px;padding:18px;background:var(--card);border:1px solid var(--line);border-radius:16px}
+    .country-picker-help{font-size:13px;color:var(--muted);margin:0 0 14px}.country-picker-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+    .country-choice{display:flex;align-items:center;gap:9px;min-width:0;padding:11px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;text-align:left}
+    .country-choice[aria-pressed="true"]{border-color:var(--teal);background:#edf5f0}.country-choice:disabled{opacity:.42;cursor:not-allowed}.country-choice-flag{font-size:22px}.country-choice-name{font-size:12px;font-weight:700;line-height:1.25}.country-results{grid-template-columns:1fr}.country-compare-grid{display:grid;grid-template-columns:1fr;gap:16px}
+    .country-compare-card h3{font-size:23px}.country-profile-chart{gap:18px}.country-profile-row{display:grid;grid-template-columns:minmax(90px,1fr) minmax(120px,2fr) minmax(90px,1fr);gap:10px;align-items:center;font-size:12px}
+    .country-profile-axis{grid-column:1/-1;font-size:13px;font-weight:700;color:var(--teal-dark)}.country-axis-end{font-size:11px;color:var(--muted)}.country-axis-end:last-child{text-align:right}
+    .country-score-track{grid-column:2;grid-row:2}.country-profile-row>.country-axis-end:first-of-type{grid-column:1;grid-row:2}.country-profile-row>.country-axis-end:last-of-type{grid-column:3;grid-row:2}
+    .nearest-country-grid{grid-template-columns:1fr;gap:20px}.nearest-country-card{padding:26px}.nearest-country-card header{align-items:center}.nearest-country-name strong{font-size:20px}.country-mini-chart .country-profile-row{grid-template-columns:minmax(82px,1fr) minmax(110px,2fr) minmax(82px,1fr);font-size:12px}.country-mini-chart .country-profile-axis{grid-column:1/-1}
+    @media(max-width:700px){.country-picker-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.country-choice{padding:9px}.country-profile-row{grid-template-columns:minmax(72px,.8fr) minmax(70px,1.4fr) minmax(72px,.8fr);gap:6px}.country-axis-end{font-size:10px}.nearest-country-card{padding:18px}.country-mini-chart .country-profile-row{grid-template-columns:minmax(66px,.8fr) minmax(65px,1.4fr) minmax(66px,.8fr);gap:6px}}
   </style>
 </head>
 <body class="assessment-shell result-shell">
   <header class="assessment-header">
-    <a class="assessment-brand" href="/"><img src="/assets/logo-full.png" alt=""><span>Linh Coach</span></a>
+    <a class="assessment-brand" href="/"><img src="/public/assets/logo-full.png" alt=""><span>Linh Coach</span></a>
     <span class="assessment-header-note">Bản đồ xu hướng</span>
   </header>
   <main class="result-main" id="result-app">
@@ -32,36 +48,42 @@
       <div class="result-section-heading">
         <p class="assessment-eyebrow">5 CHIỀU</p>
         <h2>Nhìn vị trí của mình giữa hai xu hướng.</h2>
-        <p>Thang 0–100 phản ánh xu hướng câu trả lời giữa hai phía. Đây không phải percentile so với dân số hay điểm chuẩn quốc gia; không có mức nào tự động tốt hay xấu.</p>
+        <p>Vị trí trên mỗi trục giúp bạn nhìn lại xu hướng của mình; không có phía nào tự động tốt hay xấu.</p>
       </div>
       <div class="result-chart" id="result-chart"></div>
     </section>
     <section class="country-comparison" aria-labelledby="country-heading">
-      <p class="assessment-eyebrow">CHUẨN BỊ CHO BUỔI TƯ VẤN</p>
-      <h2 id="country-heading">Đặt kết quả vào bối cảnh quốc gia con dự định đến.</h2>
-      <p class="country-intro">Bản đồ này cho thấy 5 xu hướng của học sinh. Hiện chưa có bộ dữ liệu tham chiếu quốc gia được kiểm chứng để chấm mức độ tương đồng, nên kết quả không tự kết luận con phù hợp hay không phù hợp với một nước. Trong buổi tư vấn 60 phút, Linh sẽ cùng gia đình đối chiếu kết quả với quốc gia, trường và ngành đang cân nhắc.</p>
-      <p class="assessment-small">Không dùng kết quả này để xếp hạng quốc gia hoặc dự đoán khả năng nhận học bổng.</p>
+      <p class="assessment-eyebrow">SO SÁNH THAM CHIẾU</p>
+      <h2 id="country-heading">So sánh hồ sơ của bạn với quốc gia</h2>
+      <p class="country-intro">Mặc định đã chọn Hoa Kỳ, Vương quốc Anh và Úc. Bạn có thể đổi lựa chọn, tối đa ba quốc gia cùng lúc. Bên dưới là ba hồ sơ gần nhất với xu hướng của bạn.</p>
+      <button class="assessment-button country-picker-toggle" id="country-picker-toggle" type="button" aria-expanded="false">So sánh với quốc gia <span aria-hidden="true">＋</span></button>
+      <div class="country-picker" id="country-picker" hidden>
+        <p class="country-picker-help">Chọn tối đa 3 quốc gia để đối chiếu. Khi đã chọn đủ 3, hãy bỏ chọn một nước trước khi chọn nước khác.</p>
+        <div class="country-picker-grid" id="country-picker-grid"></div>
+      </div>
+      <p class="assessment-small" id="country-status" role="status"></p>
+      <div id="country-results" class="country-results"></div>
       <section id="previous-result" hidden style="margin-top:28px"><h2>Lần gần nhất để bạn đối chiếu</h2><p class="country-intro">Phần này chỉ xuất hiện khi lượt truy cập mới được cấp quyền xem kết quả trước đó.</p><div id="previous-chart" class="result-chart"></div></section>
     </section>
     <section class="result-next-step">
       <div>
         <p class="assessment-eyebrow">BƯỚC TIẾP THEO</p>
         <h2>Mang bản đồ này vào một cuộc trò chuyện thật.</h2>
-        <p>Hãy hoàn thành bài kiểm chứng trước khi gửi yêu cầu đặt lịch. Lưu bản đồ kết quả và mở lại trong buổi tư vấn 60 phút để cùng Linh phân tích. Linh sẽ phản hồi qua email để xác nhận khung giờ.</p>
+        <p>Con có thể chọn một chiều khiến mình tò mò nhất, kể cho ba mẹ điều mình nhận ra và chọn một việc nhỏ để thử trong bảy ngày.</p>
       </div>
       <div class="result-actions">
-        <a class="assessment-button" href="mailto:Linhcoach.EQstrength@gmail.com?subject=Đ%E1%BA%B7t%20l%E1%BB%8Bch%20t%C6%B0%20v%E1%BA%A5n%2060%20ph%C3%BAt&amp;body=Ch%C3%A0o%20Linh%2C%0D%0A%0D%0AEm%20%C4%91%C3%A3%20ho%C3%A0n%20th%C3%A0nh%20b%C3%A0i%20ki%E1%BB%83m%20ch%E1%BB%A9ng%20h%C6%B0%E1%BB%9Bng%20%C4%91i%20v%C3%A0%20mu%E1%BB%91n%20%C4%91%E1%BA%B7t%20l%E1%BB%8Bch%20t%C6%B0%20v%E1%BA%A5n%2060%20ph%C3%BAt.%0D%0A%0D%0AH%E1%BB%8D%20t%C3%AAn%20h%E1%BB%8Dc%20sinh%3A%0D%0AKhung%20gi%E1%BB%9D%20mong%20mu%E1%BB%91n%3A">Gửi yêu cầu đặt lịch 60 phút <span aria-hidden="true">→</span></a>
+        <a class="assessment-button" href="https://linhcoach.nghetrienkhaiai.com/book/coaching">Đặt lịch cùng Linh <span aria-hidden="true">→</span></a>
         <a class="result-secondary-link" href="/">Quay lại trang thông tin</a>
       </div>
     </section>
   </main>
   <div class="result-error" id="result-error" hidden>
-    <h1>Chưa mở được kết quả.</h1>
-    <p id="result-error-message">Mở bài test hoặc liên hệ Linh để được hỗ trợ.</p>
-    <a class="assessment-button" href="/test">Mở bài test <span aria-hidden="true">→</span></a>
-    <p><a class="result-secondary-link" href="mailto:Linhcoach.EQstrength@gmail.com?subject=H%E1%BB%97%20tr%E1%BB%A3%20m%E1%BB%9F%20k%E1%BA%BFt%20qu%E1%BA%A3">Liên hệ Linh qua email</a></p>
-    <p><a class="result-secondary-link" href="/">Về trang thông tin</a></p>
+    <h1>Đường dẫn kết quả không còn dùng được.</h1>
+    <p id="result-error-message">Vui lòng mở lại đường dẫn trong email/tin nhắn đã nhận hoặc liên hệ Linh để được hỗ trợ.</p>
+    <a class="assessment-button" href="/">Về trang thông tin <span aria-hidden="true">→</span></a>
   </div>
   <script src="/result.js" type="module"></script>
+  <script src="/embed-height.js" defer></script>
 </body>
 </html>
+
