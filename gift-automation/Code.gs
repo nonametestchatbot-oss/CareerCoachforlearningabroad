@@ -1,4 +1,5 @@
 const GIFT_FILE_ID = '1BHEPGL6dJ8WY-knFEolGDMdYilW9iEKkdwRvQr9s8O0';
+const GIFT_SENDER_EMAIL = 'linhcoach@gmail.com';
 const GIFT_FILE_URL = 'https://docs.google.com/spreadsheets/d/' + GIFT_FILE_ID + '/edit';
 const GIFT_SITE_URL = 'https://duhocbenvung.linhcoach-eqstrength.com';
 const GIFT_API_URL = GIFT_SITE_URL + '/api/crm?action=gift-nurture';
@@ -15,6 +16,12 @@ function doPost(e) {
   if (input.action === 'sendAssessmentAccess') return sendAssessmentAccess_(input);
   return json_({ok:false,error:'Unknown action'});
 }
+function requireSender_() {
+  const actual = String(Session.getEffectiveUser().getEmail() || '').trim().toLowerCase();
+  if (actual !== GIFT_SENDER_EMAIL) throw new Error('GIFT_SENDER_MISMATCH');
+  return actual;
+}
+
 function sendAssessmentAccess_(input) {
   const email = String(input.email || '').trim().toLowerCase();
   const name = String(input.name || 'bạn').trim() || 'bạn';
@@ -31,6 +38,7 @@ function sendAssessmentAccess_(input) {
   const propertyKey = 'assessment_access_' + requestId;
   if (properties.getProperty(propertyKey)) return json_({ok:true,duplicate:true});
   try {
+    const sender = requireSender_();
     const subject = 'Mã đăng nhập bài test của bạn | Linh Coach';
     const expiryLabel = Utilities.formatDate(expiresAt, Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm');
     const testUrl = GIFT_SITE_URL + '/test';
@@ -43,7 +51,7 @@ function sendAssessmentAccess_(input) {
       + 'Trân trọng,\nLinh Coach';
     MailApp.sendEmail({to:email,subject:subject,body:body,name:'Linh Coach'});
     properties.setProperty(propertyKey, new Date().toISOString());
-    return json_({ok:true});
+    return json_({ok:true,sender:sender});
   } catch (error) {
     return json_({ok:false,error:'Google chưa xác nhận gửi email mã đăng nhập.'});
   }
@@ -75,6 +83,7 @@ function installNurtureTrigger() {
   if (!existing) ScriptApp.newTrigger('sendDueGiftNurture').timeBased().everyMinutes(15).create();
 }
 function sendDueGiftNurture() {
+  requireSender_();
   const secret = PropertiesService.getScriptProperties().getProperty('GIFT_AUTOMATION_SECRET') || '';
   if (!secret) throw new Error('Cần đặt Script Property GIFT_AUTOMATION_SECRET trước.');
   const response = UrlFetchApp.fetch(GIFT_API_URL,{method:'post',contentType:'application/json',headers:{'x-gift-secret':secret},payload:JSON.stringify({action:'claim',secret:secret}),muteHttpExceptions:true});
