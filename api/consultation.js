@@ -50,7 +50,7 @@ export default async function handler(req, res) {
       });
       const response = await fetch(scriptUrl,{
         method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-        body:new URLSearchParams({action:'deliverGift',secret,requestId:lead.id+':'+Date.now(),email,name,
+        body:new URLSearchParams({action:'deliverGift',secret,requestId:clean(body.requestId,160) || lead.id+':'+Date.now(),email,name,
           fileId:'1BHEPGL6dJ8WY-knFEolGDMdYilW9iEKkdwRvQr9s8O0',
           fileUrl:'https://docs.google.com/spreadsheets/d/1BHEPGL6dJ8WY-knFEolGDMdYilW9iEKkdwRvQr9s8O0/edit'}).toString(),
         signal:AbortSignal.timeout(20000)
