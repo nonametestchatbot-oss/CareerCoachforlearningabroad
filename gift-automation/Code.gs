@@ -62,10 +62,13 @@ function deliverGift_(input) {
   const name = String(input.name || 'bạn').trim() || 'bạn';
   const requestId = String(input.requestId || '').trim();
   if (!email || !requestId || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json_({ok:false,error:'Thông tin yêu cầu không hợp lệ.'});
+  const sender = String(Session.getEffectiveUser().getEmail() || '').trim().toLowerCase();
+  if (sender !== GIFT_SENDER_EMAIL) return json_({ok:false,error:'Apps Script cần được triển khai bằng tài khoản linhcoach@gmail.com.'});
   const properties = PropertiesService.getScriptProperties();
   const prior = properties.getProperty('gift_' + requestId);
-  if (prior) return json_({ok:true,fileUrl:GIFT_FILE_URL,duplicate:true});
+  if (prior) return json_({ok:true,fileUrl:GIFT_FILE_URL,sender:sender,duplicate:true});
   try {
+    if (MailApp.getRemainingDailyQuota() < 1) return json_({ok:false,error:'Tài khoản gửi thư đã đạt hạn mức hôm nay.'});
     const file = DriveApp.getFileById(GIFT_FILE_ID);
     const viewers = file.getViewers().map(user => String(user.getEmail() || '').toLowerCase());
     if (viewers.indexOf(email) < 0) file.addViewer(email);
@@ -73,7 +76,7 @@ function deliverGift_(input) {
     const body = 'Chào ' + name + ',\n\nLinh Coach đã cấp quyền xem bảng chương trình quốc tế ngắn hạn có học bổng cho email này.\n\nMở tài liệu tại đây: ' + GIFT_FILE_URL + '\n\nNếu Google yêu cầu đăng nhập, hãy dùng đúng email đã đăng ký: ' + email + '. Tài liệu được chia sẻ ở chế độ chỉ xem.\n\nCác cơ hội trong bảng chỉ mang tính tham khảo. Hạn nộp, độ tuổi, chi phí và hỗ trợ có thể thay đổi; vui lòng xác minh với đơn vị tổ chức trước khi đăng ký.\n\nNếu bạn muốn dừng nhận email tiếp theo, vui lòng liên hệ Linh tại Linhcoach.EQstrength@gmail.com.\n\nTrân trọng,\nLinh Coach\nLinhcoach.EQstrength@gmail.com';
     MailApp.sendEmail({to:email,subject:subject,body:body,name:'Linh Coach'});
     properties.setProperty('gift_' + requestId, new Date().toISOString());
-    return json_({ok:true,fileUrl:GIFT_FILE_URL});
+    return json_({ok:true,fileUrl:GIFT_FILE_URL,sender:sender});
   } catch (error) {
     return json_({ok:false,error:'Google chưa xác nhận hoàn tất cấp quyền và gửi thư.'});
   }
