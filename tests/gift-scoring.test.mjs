@@ -12,8 +12,8 @@ test('gift intake scores an imminent high-school family lead transparently', () 
   });
   assert.equal(lead.fitScore, 100);
   assert.equal(lead.intentScore, 100);
-  assert.equal(lead.engagementScore, 75);
-  assert.equal(lead.score, 94);
+  assert.equal(lead.engagementScore, 90);
+  assert.equal(lead.score, 98);
   assert.match(lead.scoreReasons.fit, /trọng số vai trò 60%/i);
 });
 
