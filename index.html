@@ -26,6 +26,14 @@
   <link rel="stylesheet" href="/reference.css">
 </head>
 <body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="#top" aria-label="Linh Coach — về trang chủ"><img src="/public/assets/logo-full.png" width="42" height="42" alt=""><span>Linh Coach</span></a>
+      <nav id="main-navigation" aria-label="Điều hướng chính"><a href="#ve-linh">Về Linh</a><a href="#buoi-tu-van">Buổi tư vấn</a><a href="/kham-pha-so-thich-the-manh">Sở thích &amp; thế mạnh</a><a href="#phan-hoi">Câu chuyện học viên</a><a href="/test">Bài test hòa nhập</a><a href="/qua-tang">Quà tặng</a></nav>
+      <a class="button button-small" href="#dat-lich">Đặt lịch 1 giờ</a>
+      <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="main-navigation">Menu</button>
+    </div>
+  </header>
   <main id="top">
     <section class="hero section" aria-labelledby="hero-title"><div class="wrap hero-grid">
       <div class="hero-copy"><h1 id="hero-title">Trước khi chọn trường, hãy cùng con <em>chọn đúng ngành.</em></h1><p>Một giờ cùng Linh để con hiểu mình, hiểu ngành và biết bước tiếp theo nên làm gì.</p><a class="button" href="#dat-lich">Đặt lịch 1 giờ, 1.000.000đ <span aria-hidden="true">→</span></a></div>
@@ -79,6 +87,10 @@
   <footer class="footer"><div class="wrap footer-grid"><div><a class="brand" href="#top"><img src="/public/assets/logo-full.png" width="42" height="42" alt=""><span>Linh Coach</span></a><p>Nguyễn Vũ Phú Linh, Career Coach.<br>Đồng hành cùng gia đình trong việc chọn ngành và định hướng nghề nghiệp cho con.</p></div><div><h4>LIÊN HỆ</h4><a href="mailto:Linhcoach.EQstrength@gmail.com">Linhcoach.EQstrength@gmail.com</a></div></div><div class="wrap copyright">© Linh Coach. Bảo lưu mọi quyền.</div></footer>
   <script src="/main.js" defer></script>
   <script src="/embed-height.js" defer></script>
+
+  <script>
+    (() => { const toggle = document.getElementById('menu-toggle'); const nav = document.getElementById('main-navigation'); if (!toggle || !nav) return; const close = () => { toggle.setAttribute('aria-expanded', 'false'); nav.classList.remove('is-open'); }; toggle.addEventListener('click', () => { const open = toggle.getAttribute('aria-expanded') === 'true'; toggle.setAttribute('aria-expanded', String(!open)); nav.classList.toggle('is-open', !open); }); nav.querySelectorAll('a').forEach(link => link.addEventListener('click', close)); document.addEventListener('keydown', event => { if (event.key === 'Escape') close(); }); })();
+  </script>
 </body>
 </html>
 
