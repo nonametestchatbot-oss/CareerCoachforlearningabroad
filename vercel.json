@@ -13,10 +13,6 @@
     {
       "source": "/qua-tang",
       "destination": "/qua-tang.html"
-    },
-    {
-      "source": "/kham-pha-so-thich-the-manh",
-      "destination": "/interest-strengths.html"
     }
   ],
   "headers": [
