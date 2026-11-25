@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Khám phá sở thích nghề nghiệp và thế mạnh qua hai phần tự đánh giá, kèm báo cáo kết hợp 8 trang.">
+  <title>Khám phá sở thích và thế mạnh | Linh Coach</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/reference.css">
+  <link rel="stylesheet" href="/interest-strengths.css?v=20261125">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="/" aria-label="Linh Coach — về trang chủ"><img src="/public/assets/logo-full.png" width="42" height="42" alt=""><span>Linh Coach</span></a>
+      <nav id="main-navigation" aria-label="Điều hướng chính"><a href="/#ve-linh">Về Linh</a><a href="/#buoi-tu-van">Buổi tư vấn</a><a href="/#phan-hoi">Câu chuyện học viên</a><a href="/test">Bài test hòa nhập</a><a href="/#hoi-dap">Hỏi đáp</a><a href="/qua-tang">Quà tặng</a></nav>
+      <a class="button button-small" href="/#dat-lich">Đặt lịch 1 giờ</a>
+      <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="main-navigation">Menu</button>
+    </div>
+  </header>
+  <main class="shell">
+    <section class="intro" id="intro">
+      <p class="eyebrow">BÀI KHÁM PHÁ SỞ THÍCH VÀ THẾ MẠNH</p>
+      <h1>Nhìn ra điều mình thích, điều mình làm tốt và cách phát triển tiếp.</h1>
+      <p class="lede">Hai bài tự đánh giá giúp bạn khám phá nhóm hoạt động mình yêu thích và những năng lực mình thường nhận thấy ở bản thân. Kết quả giúp bạn đặt ra giả thuyết để thử, quan sát và trao đổi về lựa chọn học tập, nghề nghiệp.</p>
+      <div class="intro-grid"><article><strong>42 câu</strong><span>Sở thích nghề nghiệp RIASEC · khoảng 5 phút</span></article><article><strong>80 câu</strong><span>8 nhóm năng lực tự nhận xét · khoảng 8–10 phút</span></article><article><strong>8 trang</strong><span>Báo cáo kết hợp, có thể in hoặc lưu PDF</span></article></div>
+      <div class="notice"><strong>Điều cần biết trước khi làm</strong><p>Hãy chọn theo sở thích và trải nghiệm của bạn, không theo câu trả lời “đẹp” nhất. Các câu hỏi và cách tính điểm bên dưới được giữ theo tài liệu Linh cung cấp. Bài test mang tính tham khảo, chưa được chuẩn hóa cho tuyển sinh, chẩn đoán hay dự đoán thành công nghề nghiệp. Kết quả được xử lý ngay trên trình duyệt và không gửi lên máy chủ.</p></div>
+      <button class="primary" id="start" type="button">Bắt đầu khám phá <span aria-hidden="true">→</span></button>
+    </section>
+
+    <section class="quiz" id="quiz" hidden>
+      <div class="quiz-head"><div><p class="eyebrow" id="part-label"></p><h2 id="question-title"></h2></div><span class="counter" id="counter"></span></div>
+      <div class="progress"><span id="progress-fill"></span></div><p class="progress-copy" id="progress-copy"></p>
+      <form id="question-form" novalidate><div id="question-list"></div>
+        <p class="feedback" id="feedback" role="status" aria-live="polite"></p>
+        <div class="quiz-actions"><button class="secondary" id="previous" type="button">← Câu trước</button><button class="primary" id="next" type="submit">Tiếp tục →</button></div>
+      </form>
+      <p class="privacy-note">Câu trả lời chỉ được giữ tạm trong thẻ trình duyệt này để tính kết quả. Tải hoặc in báo cáo nếu bạn muốn lưu lại.</p>
+    </section>
+
+    <section class="results" id="results" hidden>
+      <section class="result-intro"><p class="eyebrow">BẢN ĐỒ CỦA BẠN</p><h1>Kết quả sở thích, thế mạnh và những điểm giao nhau.</h1><p>Trước hết, hãy xem kết quả riêng của từng bài. Sau đó, đọc phần kết hợp như những hướng khám phá cần được kiểm chứng trong đời sống thật.</p><div class="result-actions"><button class="primary" id="print-report" type="button">In / lưu báo cáo 8 trang</button><button class="secondary" id="retake" type="button">Làm lại bài test</button></div></section>
+      <section class="score-summary"><article><p class="eyebrow">BÀI 1 · SỞ THÍCH RIASEC</p><h2>Những hoạt động bạn có xu hướng yêu thích</h2><div id="riasec-result" class="score-list"></div></article><article><p class="eyebrow">BÀI 2 · TỰ NHẬN XÉT THẾ MẠNH</p><h2>Những năng lực bạn thường nhận thấy</h2><div id="intelligence-result" class="score-list"></div></article></section>
+      <section class="report" id="report"></section>
+    </section>
+  </main>
+  <footer><span>Linh Coach</span><span>Khám phá bằng câu hỏi · kiểm chứng bằng trải nghiệm</span></footer>
+  <script type="module" src="/interest-strengths.js?v=20261125"></script>
+  <script>
+    const toggle = document.getElementById('menu-toggle');
+    const navigation = document.getElementById('main-navigation');
+    const closeNavigation = () => { toggle.setAttribute('aria-expanded', 'false'); navigation.classList.remove('is-open'); };
+    toggle.addEventListener('click', () => {
+      const open = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!open));
+      navigation.classList.toggle('is-open', !open);
+    });
+    navigation.querySelectorAll('a').forEach(link => link.addEventListener('click', closeNavigation));
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') closeNavigation(); });
+  </script>
+</body>
+</html>
+
